@@ -11,6 +11,7 @@ export const dealStage = pgEnum("deal_stage", ["new", "qualified", "survey", "pr
 export const jobStatus = pgEnum("job_status", ["scheduled", "dispatched", "in_progress", "completed", "cancelled"]);
 export const invoiceStatus = pgEnum("invoice_status", ["draft", "sent", "paid", "overdue", "void"]);
 export const mediaCategory = pgEnum("media_category", ["before", "after", "issue", "other"]);
+export const appointmentStatus = pgEnum("appointment_status", ["scheduled", "rescheduled", "cancelled", "no_show", "done"]);
 
 const base = {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -107,6 +108,20 @@ export const jobs = pgTable("jobs", {
   warrantyUntil: date("warranty_until"),
 });
 
+export const appointments = pgTable("appointments", {
+  ...base,
+  jobId: uuid("job_id").references(() => jobs.id),
+  customerId: uuid("customer_id").references(() => customers.id),
+  siteId: uuid("site_id").references(() => sites.id),
+  technicianId: uuid("technician_id").references(() => profiles.id),
+  localityId: uuid("locality_id").references(() => localities.id),
+  serviceName: text("service_name"),
+  startAt: timestamp("start_at", { withTimezone: true }).notNull(),
+  endAt: timestamp("end_at", { withTimezone: true }).notNull(),
+  status: appointmentStatus("status").notNull().default("scheduled"),
+  notes: text("notes"),
+});
+
 export const invoices = pgTable("invoices", {
   ...base,
   customerId: uuid("customer_id").references(() => customers.id),
@@ -152,3 +167,4 @@ export const activityLog = pgTable("activity_log", {
 
 export type Lead = typeof leads.$inferSelect;
 export type Deal = typeof deals.$inferSelect;
+export type Appointment = typeof appointments.$inferSelect;

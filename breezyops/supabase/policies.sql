@@ -41,6 +41,7 @@ alter table service_catalog enable row level security;
 alter table localities      enable row level security;
 alter table activity_log    enable row level security;
 alter table deals           enable row level security;
+alter table appointments    enable row level security;
 
 -- profiles: read own; admin manages all
 create policy profiles_self_read on profiles for select using (id = auth.uid() or is_staff());
@@ -73,6 +74,14 @@ create policy media_tech on media for all using (
 ) with check (
   current_role_name() = 'technician' and exists (
     select 1 from jobs j where j.id = media.job_id and j.technician_id = auth.uid()));
+
+-- appointments: admin/ops/b2b_manager full; technician reads only their own, no writes.
+create policy appointments_staff on appointments for all
+  using (current_role_name() in ('admin','ops','b2b_manager'))
+  with check (current_role_name() in ('admin','ops','b2b_manager'));
+create policy appointments_tech_read on appointments for select using (
+  current_role_name() = 'technician' and technician_id = auth.uid()
+);
 
 -- deals: B2B pipeline. Per F02: admin/ops/b2b_manager only; technician has no access.
 create policy deals_b2b on deals for all
