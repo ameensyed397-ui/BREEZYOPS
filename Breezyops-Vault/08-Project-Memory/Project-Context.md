@@ -27,4 +27,7 @@ tags: [memory]
 
 ## Current status
 - Breezyops fully specified in this vault (PRD, architecture, 13 features, 6 userflows, 7 SOPs, 5 template sets, 3-phase roadmap).
-- Next action: Phase 1 scaffold + week-2 data importer (see [[Build-Phases]], [[Gaps-and-Open-Questions]] #4).
+- Code build started 2026-07-13: real Supabase auth (email/phone OTP), F01 Lead Inbox (partial, mock data), F02 Lead Pipeline (B2C+B2B kanban, mock data) built and committed. Live feature-by-feature state: [[Build-Status]]. Change-by-change reasoning: [[Build-Log]].
+- Asad supplied a live Supabase project (URL + anon key only so far); DB not yet connected (`DATABASE_URL`/service role key still needed) — everything currently runs on mock data. Asad is focused on getting the marketing site to prod in parallel; DB wiring is deferred until he's ready.
+- Asad is also running a second AI coding tool (opencode) concurrently in the same working directory to parallelize feature-building. Coordination note: both tools editing the same shared files (`lib/db/schema.ts`, `lib/db/mock.ts`, nav layout) at once risks silent overwrites — recommend splitting by feature/file ownership and committing frequently.
+- Next action: continue Phase 1 features in order (F03 Appointments, F04 Jobs, F05 Customers, F09 Invoicing, F10 Documents, F13 admin UI), then wire the real DB once Asad provides `DATABASE_URL` + service role key, then regression test + UX audit before declaring Phase 1 prod-ready. See [[Gaps-and-Open-Questions]] #4 for the still-pending data importer.

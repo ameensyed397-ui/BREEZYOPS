@@ -39,6 +39,37 @@ bucket: client-media/
 ```
 Access via signed URLs; Storage RLS mirrors table RLS (technician sees only assigned-job folders). See [[F10-Document-and-Media-Repository]].
 
+## System diagram
+
+```mermaid
+flowchart LR
+    subgraph Channels["Lead channels"]
+        Voice["Voice (Bolna/Exotel)"]
+        WA["WhatsApp (AiSensy)"]
+        Chat["Web chat widget"]
+        Form["Web form"]
+    end
+
+    Channels --> Webhook["/api/webhooks/lead"]
+    Webhook --> Leads[("leads table")]
+    Leads --> Inbox["Unified Inbox (F01)"]
+    Inbox --> Pipeline["Pipeline B2C/B2B (F02)"]
+    Pipeline --> Jobs[("jobs")]
+    Pipeline --> Deals[("deals")]
+    Jobs --> Invoices[("invoices")]
+    Deals -->|won + gst check| Contracts["Contracts (F07)"]
+
+    App["Next.js app (Vercel)"] -->|Drizzle| PG[("Supabase Postgres\nRLS enforced")]
+    App -->|signed URLs| Storage["Supabase Storage"]
+    App --> Realtime["Supabase Realtime"]
+    PG -.->|policies.sql| RLS["Row-Level Security\nrole = admin/ops/technician/b2b_manager/finance/viewer"]
+
+    App -->|outbound| Resend["Resend (email)"]
+    App -->|outbound| AiSensyOut["AiSensy (WhatsApp)"]
+    App -->|outbound| Razorpay["Razorpay (payments)"]
+    Razorpay -->|webhook| Webhook
+```
+
 ## Key architectural choices
 - **Server actions over REST** for internal mutations; REST webhooks only for external callers.
 - **RLS as the security backbone** — never trust the client; the DB decides. See [[RBAC-and-Security]].

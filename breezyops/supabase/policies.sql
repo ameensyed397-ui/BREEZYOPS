@@ -40,6 +40,7 @@ alter table consents        enable row level security;
 alter table service_catalog enable row level security;
 alter table localities      enable row level security;
 alter table activity_log    enable row level security;
+alter table deals           enable row level security;
 
 -- profiles: read own; admin manages all
 create policy profiles_self_read on profiles for select using (id = auth.uid() or is_staff());
@@ -73,6 +74,11 @@ create policy media_tech on media for all using (
   current_role_name() = 'technician' and exists (
     select 1 from jobs j where j.id = media.job_id and j.technician_id = auth.uid()));
 
+-- deals: B2B pipeline. Per F02: admin/ops/b2b_manager only; technician has no access.
+create policy deals_b2b on deals for all
+  using (current_role_name() in ('admin','ops','b2b_manager'))
+  with check (current_role_name() in ('admin','ops','b2b_manager'));
+
 -- invoices: admin/finance/b2b_manager
 create policy invoices_finance on invoices for all
   using (current_role_name() in ('admin','finance','b2b_manager'))
@@ -90,6 +96,7 @@ grant select on service_catalog_public to authenticated;
 create policy localities_read on localities for select using (auth.uid() is not null);
 create policy localities_admin on localities for all using (is_admin()) with check (is_admin());
 
--- activity_log: append-only; staff read
-create policy audit_insert on activity_log for insert with check (auth.uid() is not null);
+-- activity_log: append-only; staff read. actor must be the caller -- prevents
+-- an authenticated user from writing an audit row attributed to someone else.
+create policy audit_insert on activity_log for insert with check (actor = auth.uid());
 create policy audit_read on activity_log for select using (is_staff());
