@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Inbox, LayoutDashboard, Users, Calendar, Wrench, FileText, Settings, Wind } from "lucide-react";
+import { Inbox, LayoutDashboard, Users, Calendar, Wrench, FileText, Settings, Wind, Kanban } from "lucide-react";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/leads", label: "Leads", icon: Inbox, badge: "3" },
+  { href: "/pipeline", label: "Pipeline", icon: Kanban },
   { href: "/customers", label: "Customers", icon: Users },
   { href: "/schedule", label: "Schedule", icon: Calendar },
   { href: "/jobs", label: "Jobs", icon: Wrench },

@@ -1,4 +1,4 @@
-import type { Lead } from "./schema";
+import type { Lead, Deal } from "./schema";
 
 export const mockLeads: (Lead & { locality?: string })[] = [
   { id: "1", channel: "whatsapp", source: "reactivation", segment: "b2c", name: "Priya K.",
@@ -8,7 +8,7 @@ export const mockLeads: (Lead & { locality?: string })[] = [
     createdAt: new Date(Date.now() - 6 * 60000), updatedAt: new Date(), locality: "HSR Layout" },
   { id: "2", channel: "voice", source: "google", segment: "b2c", name: "Rahul S.",
     phone: "+91 96•• ••455", message: "Wants deep clean before guests arrive this weekend.",
-    urgent: false, localityId: null, status: "new", aiDisclosed: true, customerId: null,
+    urgent: false, localityId: null, status: "qualified", aiDisclosed: true, customerId: null,
     assignedTo: null, slaDueAt: new Date(Date.now() + 24 * 60000), lostReason: null,
     createdAt: new Date(Date.now() - 22 * 60000), updatedAt: new Date(), locality: "Koramangala" },
   { id: "3", channel: "webform", source: "website", segment: "b2b", name: "Anish M. (Indiranagar office)",
@@ -16,4 +16,42 @@ export const mockLeads: (Lead & { locality?: string })[] = [
     urgent: false, localityId: null, status: "new", aiDisclosed: true, customerId: null,
     assignedTo: null, slaDueAt: null, lostReason: null,
     createdAt: new Date(Date.now() - 90 * 60000), updatedAt: new Date(), locality: "Indiranagar" },
+  { id: "4", channel: "whatsapp", source: "referral", segment: "b2c", name: "Meera N.",
+    phone: "+91 99•• ••120", message: "Split AC installation, 2 units, new flat in Whitefield.",
+    urgent: false, localityId: null, status: "booked", aiDisclosed: true, customerId: null,
+    assignedTo: null, slaDueAt: null, lostReason: null,
+    createdAt: new Date(Date.now() - 3 * 24 * 3600000), updatedAt: new Date(), locality: "Whitefield" },
+  { id: "5", channel: "voice", source: "google", segment: "b2c", name: "Karthik R.",
+    phone: "+91 97•• ••330", message: "AMC service visit, routine cleaning.",
+    urgent: false, localityId: null, status: "completed", aiDisclosed: true, customerId: null,
+    assignedTo: null, slaDueAt: null, lostReason: null,
+    createdAt: new Date(Date.now() - 5 * 24 * 3600000), updatedAt: new Date(), locality: "Bellandur" },
+  { id: "6", channel: "webform", source: "website", segment: "b2c", name: "Divya S.",
+    phone: "+91 95•• ••882", message: "Gas top-up, quoted ₹1,800.",
+    urgent: false, localityId: null, status: "paid", aiDisclosed: true, customerId: null,
+    assignedTo: null, slaDueAt: null, lostReason: null,
+    createdAt: new Date(Date.now() - 8 * 24 * 3600000), updatedAt: new Date(), locality: "Koramangala" },
+];
+
+export const mockDeals: (Deal & { customerName: string; locality?: string })[] = [
+  { id: "d1", customerId: null, leadId: "3", title: "Anish M. — Indiranagar office VRF AMC",
+    stage: "new", value: "180000", localityId: null, ownerId: null, gstRequired: true,
+    lastActivityAt: new Date(Date.now() - 90 * 60000), lostReason: null,
+    createdAt: new Date(Date.now() - 90 * 60000), updatedAt: new Date(),
+    customerName: "Anish M.", locality: "Indiranagar" },
+  { id: "d2", customerId: null, leadId: null, title: "Whitefield Tech Park — 4-floor VRF survey",
+    stage: "survey", value: "420000", localityId: null, ownerId: null, gstRequired: true,
+    lastActivityAt: new Date(Date.now() - 9 * 24 * 3600000), lostReason: null,
+    createdAt: new Date(Date.now() - 12 * 24 * 3600000), updatedAt: new Date(),
+    customerName: "Whitefield Tech Park", locality: "Whitefield" },
+  { id: "d3", customerId: null, leadId: null, title: "Koramangala Co-work — quarterly AMC renewal",
+    stage: "proposal", value: "95000", localityId: null, ownerId: null, gstRequired: false,
+    lastActivityAt: new Date(Date.now() - 2 * 24 * 3600000), lostReason: null,
+    createdAt: new Date(Date.now() - 20 * 24 * 3600000), updatedAt: new Date(),
+    customerName: "Koramangala Co-work", locality: "Koramangala" },
+  { id: "d4", customerId: null, leadId: null, title: "HSR Business Center — negotiation on 6-unit contract",
+    stage: "negotiation", value: "260000", localityId: null, ownerId: null, gstRequired: true,
+    lastActivityAt: new Date(Date.now() - 1 * 24 * 3600000), lostReason: null,
+    createdAt: new Date(Date.now() - 30 * 24 * 3600000), updatedAt: new Date(),
+    customerName: "HSR Business Center", locality: "HSR Layout" },
 ];

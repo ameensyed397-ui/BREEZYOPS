@@ -6,7 +6,8 @@ import {
 export const userRole = pgEnum("user_role", ["admin", "ops", "technician", "b2b_manager", "finance", "viewer"]);
 export const segment = pgEnum("segment", ["b2c", "b2b"]);
 export const leadChannel = pgEnum("lead_channel", ["voice", "whatsapp", "webchat", "webform", "referral", "walkin"]);
-export const leadStatus = pgEnum("lead_status", ["new", "qualified", "booked", "won", "lost"]);
+export const leadStatus = pgEnum("lead_status", ["new", "qualified", "booked", "completed", "paid", "retained", "lost"]);
+export const dealStage = pgEnum("deal_stage", ["new", "qualified", "survey", "proposal", "negotiation", "won", "lost"]);
 export const jobStatus = pgEnum("job_status", ["scheduled", "dispatched", "in_progress", "completed", "cancelled"]);
 export const invoiceStatus = pgEnum("invoice_status", ["draft", "sent", "paid", "overdue", "void"]);
 export const mediaCategory = pgEnum("media_category", ["before", "after", "issue", "other"]);
@@ -68,6 +69,20 @@ export const leads = pgTable("leads", {
   customerId: uuid("customer_id").references(() => customers.id),
   assignedTo: uuid("assigned_to").references(() => profiles.id),
   slaDueAt: timestamp("sla_due_at", { withTimezone: true }),
+  lostReason: text("lost_reason"),
+});
+
+export const deals = pgTable("deals", {
+  ...base,
+  customerId: uuid("customer_id").references(() => customers.id),
+  leadId: uuid("lead_id").references(() => leads.id),
+  title: text("title").notNull(),
+  stage: dealStage("stage").notNull().default("new"),
+  value: numeric("value"),
+  localityId: uuid("locality_id").references(() => localities.id),
+  ownerId: uuid("owner_id").references(() => profiles.id),
+  gstRequired: boolean("gst_required").default(false),
+  lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).defaultNow(),
   lostReason: text("lost_reason"),
 });
 
@@ -136,3 +151,4 @@ export const activityLog = pgTable("activity_log", {
 });
 
 export type Lead = typeof leads.$inferSelect;
+export type Deal = typeof deals.$inferSelect;
