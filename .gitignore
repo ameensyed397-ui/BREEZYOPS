@@ -1,0 +1,40 @@
+# Dependencies
+breezyops/node_modules/
+breezyops/.pnp
+breezyops/.pnp.*
+breezyops/.yarn/*
+!breezyops/.yarn/patches
+!breezyops/.yarn/plugins
+!breezyops/.yarn/releases
+!breezyops/.yarn/versions
+
+# Next.js build and cache
+breezyops/.next/
+breezyops/out/
+breezyops/build/
+
+# IDE / System files
+.DS_Store
+Thumbs.db
+*.pem
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local environment variables
+breezyops/.env*
+
+# Vercel deployment cache
+breezyops/.vercel/
+
+# TypeScript cache
+breezyops/*.tsbuildinfo
+breezyops/next-env.d.ts
+
+# Obsidian local settings
+Breezyops-Vault/.obsidian/workspace.json
+Breezyops-Vault/.obsidian/workspace
+Breezyops-Vault/.obsidian/cache/
