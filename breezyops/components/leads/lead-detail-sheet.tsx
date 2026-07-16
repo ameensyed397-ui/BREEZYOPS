@@ -116,18 +116,18 @@ export function LeadDetailSheet({ lead, onOpenChange }: { lead: L | null; onOpen
         </SheetBody>
 
         <SheetFooter>
-          <Button className="w-full sm:w-auto" disabled={loading} onClick={handleQualify}>
+          <Button className="w-full" disabled={loading} onClick={handleQualify}>
             <UserPlus className="mr-2 h-4 w-4" /> Qualify
           </Button>
-          <Button variant="secondary" className="w-full sm:w-auto" onClick={handleBookNow}>
+          <Button variant="secondary" className="w-full" onClick={handleBookNow}>
             <CalendarPlus className="mr-2 h-4 w-4" /> Book now
           </Button>
           {markingLost ? (
-            <Button variant="destructive" className="w-full sm:w-auto" disabled={loading} onClick={handleMarkLost}>
+            <Button variant="destructive" className="w-full" disabled={loading} onClick={handleMarkLost}>
               <XCircle className="mr-2 h-4 w-4" /> Confirm lost
             </Button>
           ) : (
-            <Button variant="ghost" className="w-full sm:w-auto text-muted-foreground" onClick={() => setMarkingLost(true)}>
+            <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setMarkingLost(true)}>
               <XCircle className="mr-2 h-4 w-4" /> Mark lost
             </Button>
           )}

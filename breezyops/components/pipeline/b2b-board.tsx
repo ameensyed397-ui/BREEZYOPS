@@ -96,9 +96,9 @@ export function B2BBoard({ deals }: { deals: D[] }) {
               (or accepted) before marking the deal won.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setGstWarning(null)}>Go back</Button>
-            <Button onClick={confirmWon}>Mark won anyway</Button>
+          <DialogFooter className="flex flex-col">
+            <Button variant="secondary" className="w-full" onClick={() => setGstWarning(null)}>Go back</Button>
+            <Button className="w-full" onClick={confirmWon}>Mark won anyway</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

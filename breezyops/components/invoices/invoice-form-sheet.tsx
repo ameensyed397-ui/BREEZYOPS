@@ -440,10 +440,10 @@ function InvoiceFormInner({
       </SheetBody>
 
       <SheetFooter>
-        <Button type="button" variant="outline" onClick={onDone}>
+        <Button type="button" variant="outline" className="w-full" onClick={onDone}>
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting} onClick={(e) => { e.preventDefault(); document.querySelector<HTMLFormElement>('[data-slot="sheet-body"] form')?.requestSubmit(); }}>
+        <Button type="submit" className="w-full" disabled={submitting} onClick={(e) => { e.preventDefault(); document.querySelector<HTMLFormElement>('[data-slot="sheet-body"] form')?.requestSubmit(); }}>
           {submitting ? "Saving…" : isEdit ? "Update" : "Create"}
         </Button>
       </SheetFooter>

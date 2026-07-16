@@ -129,7 +129,7 @@ export function DocumentDetailSheet({
         </SheetBody>
 
         <SheetFooter>
-          <Button className="flex-1 sm:flex-none" onClick={() => {
+          <Button className="w-full" onClick={() => {
             if (item?.storagePath) {
               window.open(item.storagePath, "_blank", "noopener,noreferrer");
             } else {
@@ -140,15 +140,15 @@ export function DocumentDetailSheet({
           </Button>
           {confirmDelete ? (
             <>
-              <Button variant="destructive" onClick={() => { toast.success("Document deleted — this is a demo."); setConfirmDelete(false); }}>
+              <Button variant="destructive" className="w-full" onClick={() => { toast.success("Document deleted — this is a demo."); setConfirmDelete(false); }}>
                 <Trash2 className="mr-2 h-4 w-4" /> Confirm delete
               </Button>
-              <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+              <Button variant="outline" className="w-full" onClick={() => setConfirmDelete(false)}>
                 Cancel
               </Button>
             </>
           ) : (
-            <Button variant="ghost" className="text-muted-foreground" onClick={() => setConfirmDelete(true)}>
+            <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setConfirmDelete(true)}>
               <Trash2 className="mr-2 h-4 w-4" /> Delete
             </Button>
           )}

@@ -225,60 +225,60 @@ export function InvoiceDetailSheet({
           )}
         </SheetBody>
 
-        <SheetFooter className="flex-wrap gap-2">
+        <SheetFooter>
           {onEdit && (invoice?.status === "draft" || invoice?.status === "sent") && (
-            <Button variant="outline" onClick={() => { onOpenChange(false); onEdit(invoice); }}>
+            <Button variant="outline" className="w-full" onClick={() => { onOpenChange(false); onEdit(invoice); }}>
               <Pencil className="mr-2 h-4 w-4" /> Edit
             </Button>
           )}
-          <Button variant="outline" onClick={handlePreview}>
+          <Button variant="outline" className="w-full" onClick={handlePreview}>
             <Eye className="mr-2 h-4 w-4" /> Preview
           </Button>
-          <Button variant="outline" onClick={handleGeneratePDF}>
+          <Button variant="outline" className="w-full" onClick={handleGeneratePDF}>
             <Download className="mr-2 h-4 w-4" /> PDF
           </Button>
           {invoice?.status === "draft" && (
             <>
-              <Button disabled={loading} onClick={() => handleStatusChange("sent")}>
+              <Button className="w-full" disabled={loading} onClick={() => handleStatusChange("sent")}>
                 <Send className="mr-2 h-4 w-4" /> Send
               </Button>
               {confirmVoid ? (
                 <>
-                  <Button variant="destructive" disabled={loading} onClick={() => handleStatusChange("void")}>
+                  <Button variant="destructive" className="w-full" disabled={loading} onClick={() => handleStatusChange("void")}>
                     Confirm void
                   </Button>
-                  <Button variant="outline" onClick={() => setConfirmVoid(false)}>
+                  <Button variant="outline" className="w-full" onClick={() => setConfirmVoid(false)}>
                     Cancel
                   </Button>
                 </>
               ) : (
-                <Button variant="ghost" className="text-muted-foreground" onClick={() => setConfirmVoid(true)}>
+                <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setConfirmVoid(true)}>
                   <XCircle className="mr-2 h-4 w-4" /> Void
                 </Button>
               )}
             </>
           )}
           {invoice?.status === "sent" && (
-            <Button disabled={loading} onClick={() => handleStatusChange("paid")}>
+            <Button className="w-full" disabled={loading} onClick={() => handleStatusChange("paid")}>
               <CheckCircle className="mr-2 h-4 w-4" /> Mark paid
             </Button>
           )}
           {invoice?.status === "overdue" && (
             <>
-              <Button variant="destructive" disabled={loading} onClick={() => handleStatusChange("paid")}>
+              <Button variant="destructive" className="w-full" disabled={loading} onClick={() => handleStatusChange("paid")}>
                 <CheckCircle className="mr-2 h-4 w-4" /> Record payment
               </Button>
               {confirmVoid ? (
                 <>
-                  <Button variant="destructive" disabled={loading} onClick={() => handleStatusChange("void")}>
+                  <Button variant="destructive" className="w-full" disabled={loading} onClick={() => handleStatusChange("void")}>
                     Confirm void
                   </Button>
-                  <Button variant="outline" onClick={() => setConfirmVoid(false)}>
+                  <Button variant="outline" className="w-full" onClick={() => setConfirmVoid(false)}>
                     Cancel
                   </Button>
                 </>
               ) : (
-                <Button variant="ghost" className="text-muted-foreground" onClick={() => setConfirmVoid(true)}>
+                <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setConfirmVoid(true)}>
                   <XCircle className="mr-2 h-4 w-4" /> Void
                 </Button>
               )}
@@ -287,20 +287,20 @@ export function InvoiceDetailSheet({
           {invoice?.status === "draft" && (
             confirmDelete ? (
               <>
-                <Button variant="destructive" disabled={loading} onClick={handleDelete}>
+                <Button variant="destructive" className="w-full" disabled={loading} onClick={handleDelete}>
                   <Trash2 className="mr-2 h-4 w-4" /> Confirm delete
                 </Button>
-                <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+                <Button variant="outline" className="w-full" onClick={() => setConfirmDelete(false)}>
                   Cancel
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" className="text-muted-foreground" onClick={() => setConfirmDelete(true)}>
+              <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setConfirmDelete(true)}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>
             )
           )}
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
             Close
           </Button>
         </SheetFooter>

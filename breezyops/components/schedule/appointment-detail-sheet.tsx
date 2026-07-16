@@ -190,12 +190,13 @@ export function AppointmentDetailSheet({
 
           {actions.length > 0 && (
             <SheetFooter>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2">
                 {actions.map((action) => (
                   <Button
                     key={action.next}
                     variant={action.variant}
                     size="sm"
+                    className="w-full"
                     onClick={() => setConfirmAction({ label: action.label, next: action.next })}
                   >
                     <action.icon className="mr-1.5 h-3.5 w-3.5" />
@@ -220,7 +221,7 @@ export function AppointmentDetailSheet({
               ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex flex-col">
             <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               disabled={saving}

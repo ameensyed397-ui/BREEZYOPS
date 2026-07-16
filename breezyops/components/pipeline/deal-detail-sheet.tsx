@@ -78,7 +78,7 @@ export function DealDetailSheet({
 
         <SheetFooter>
           {deal && (
-            <Button variant="outline" className="w-full sm:w-auto" onClick={() => { onOpenChange(false); router.push(`/customers/${deal.customerId}`); }}>
+            <Button variant="outline" className="w-full" onClick={() => { onOpenChange(false); router.push(`/customers/${deal.customerId}`); }}>
               <ExternalLink className="mr-2 h-4 w-4" /> View customer
             </Button>
           )}

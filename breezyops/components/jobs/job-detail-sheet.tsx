@@ -145,30 +145,30 @@ export function JobDetailSheet({
           {(effectiveStatus === "scheduled" || effectiveStatus === "dispatched") && (
             confirmCancel ? (
               <>
-                <Button variant="destructive" disabled={isUpdating} onClick={() => handleStatusChange("cancelled")}>
+                <Button variant="destructive" className="w-full" disabled={isUpdating} onClick={() => handleStatusChange("cancelled")}>
                   Are you sure? Cancel
                 </Button>
-                <Button variant="outline" onClick={() => setConfirmCancel(false)}>
+                <Button variant="outline" className="w-full" onClick={() => setConfirmCancel(false)}>
                   Never mind
                 </Button>
               </>
             ) : (
               <>
-                <Button disabled={isUpdating} onClick={() => handleStatusChange("in_progress")}>
+                <Button className="w-full" disabled={isUpdating} onClick={() => handleStatusChange("in_progress")}>
                   <CheckCircle className="mr-2 h-4 w-4" /> Start job
                 </Button>
-                <Button variant="ghost" className="text-muted-foreground" onClick={() => setConfirmCancel(true)}>
+                <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setConfirmCancel(true)}>
                   <XCircle className="mr-2 h-4 w-4" /> Cancel
                 </Button>
               </>
             )
           )}
           {effectiveStatus === "in_progress" && (
-            <Button disabled={isUpdating} onClick={() => handleStatusChange("completed")}>
+            <Button className="w-full" disabled={isUpdating} onClick={() => handleStatusChange("completed")}>
               <CheckCircle className="mr-2 h-4 w-4" /> Mark complete
             </Button>
           )}
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
             Close
           </Button>
         </SheetFooter>

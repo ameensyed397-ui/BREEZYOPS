@@ -240,8 +240,8 @@ function BookingSheetForm({
       </SheetBody>
 
       <SheetFooter>
-        <Button type="button" variant="outline" onClick={onDone}>Cancel</Button>
-        <Button type="button" className="w-full sm:w-auto" disabled={submitting} onClick={() => {
+        <Button type="button" variant="outline" className="w-full" onClick={onDone}>Cancel</Button>
+        <Button type="button" className="w-full" disabled={submitting} onClick={() => {
           const form = document.querySelector<HTMLFormElement>('[data-slot="sheet-body"] form');
           form?.requestSubmit();
         }}>
@@ -257,7 +257,7 @@ function BookingSheetForm({
               You&apos;ll be taken to the customer creation page. After creating the customer, come back here to book the appointment.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex flex-col">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               onDone();
