@@ -5,7 +5,7 @@ tags: [memory, status]
 
 Snapshot of what's actually built in `breezyops/` vs. the [[Feature-Index|13-feature spec]]. Update this after every feature lands — this is the "state of the world" for the code, same role [[Project-Context]] plays for the business. See [[Build-Log]] for the change-by-change history and reasoning.
 
-**Last updated:** 2026-07-16 (v0.10 — day view Notion-style, shadcn sidebar, dropdown overlap fix, badge consistency, visual hierarchy, new customer flow, Caveat font)
+**Last updated:** 2026-07-16 (v0.10 — shadcn sidebar, avatar profile, logo fix, day view Notion-style, dropdown overlap, badge consistency, visual hierarchy, new customer flow, Caveat font)
 
 ## Phase 1 progress
 
@@ -51,7 +51,7 @@ flowchart TB
 | Dashboard KPIs | 🟢 Wired to real DB queries (leads, jobs, invoices, customers, appointments) |
 | F10 Document & Media | 🟢 Built, real DB data — card grid with gradient thumbnails, type tabs, search, upload stub, detail sheet with preview card |
 | Rate limiting | 🟢 In-memory sliding-window rate limiter on auth/confirm (10/min) and webhook (30/min) |
-| Sidebar | 🟢 Shadcn sidebar component — collapsible icon mode, active nav highlighting (primary accent + left border), Caveat font brand, toggle in header |
+| Sidebar | 🟢 Shadcn sidebar component — collapsible icon mode, active nav highlighting (primary accent + left border), Caveat font brand, toggle in header, clickable logo to expand, avatar profile with initials |
 
 ## Pages
 
@@ -224,6 +224,6 @@ Per [[Build-Phases]], exit criteria is *10 real jobs run fully through Breezyops
 | New customer booking flow | ✅ resolved (v0.10) — redirect to /customers with returnTo param |
 | Week view today highlight | ✅ resolved (v0.10) — bg-primary/5 + font-semibold date |
 | Sidebar (shadcn) | ✅ resolved (v0.10) — collapsible icon mode, active nav highlighting, Caveat font brand |
-| Layout spacing consistency | ✅ resolved (v0.10) — all pages mx-auto max-w-6xl px-6 py-8 |
+| Layout spacing consistency | ✅ resolved (v0.10) — all pages w-full px-6 py-8, fills available space |
 
 **Remaining:** E2E test framework (Playwright/Cypress), notification system, command palette

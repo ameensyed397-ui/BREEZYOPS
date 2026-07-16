@@ -21,3 +21,6 @@ This is an **Obsidian vault**. Open the folder in Obsidian (File → Open Vault 
 - `06-Templates` — contract / invoice / quote / comms previews
 - `07-Roadmap` — phases, backlog, decision log, gaps
 - `08-Project-Memory` — context, glossary, changelog
+
+## Current status
+**v0.10** committed (`1bf711b`) — shadcn sidebar with collapsible icon mode, Notion-style day view, avatar profile, logo expansion, dropdown overlap fix, badge consistency, visual hierarchy, new customer booking flow. 16 routes, 0 TS errors, 0 lint warnings, 21 tests passing. See [[Build-Status]] for live state, [[Changelog]] for version history.

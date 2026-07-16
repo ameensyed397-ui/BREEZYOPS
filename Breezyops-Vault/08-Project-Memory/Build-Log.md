@@ -210,7 +210,7 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 
 **State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. All mutation functions have try-catch, all error boundaries log, all server actions have error handling.
 
-## 2026-07-16 — v0.10 Day view fix, shadcn sidebar, dropdown overlap, consistency sweep
+## 2026-07-16 — `1bf711b` v0.10 Day view fix, shadcn sidebar, dropdown overlap, consistency sweep
 
 **Why:** day view appointments were all absolutely-positioned at `left-0 right-0` causing visual overlap. Dropdowns had no background (missing `--popover` token). Sidebar needed proper 2-state toggle with active highlighting. Layout spacing was inconsistent across pages. Badge colors were inconsistent across components.
 
@@ -262,13 +262,21 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 - `week-view.tsx`: `isToday && "border-primary"` → `isToday && "border-primary bg-primary/5"` + `font-semibold` date number
 
 ### Layout spacing consistency
-- Dashboard: `px-4 py-6 sm:px-6 lg:px-8` → `mx-auto max-w-6xl px-6 py-8` (matches all other pages)
+- Dashboard: `px-4 py-6 sm:px-6 lg:px-8` → `w-full px-6 py-8` (fills available space, no max-width cap)
 - Removed redundant `p-6` from layout `<main>` — pages control their own spacing
-- All 9 pages now use identical `mx-auto max-w-6xl px-6 py-8` pattern
+- All 9 pages now use identical `w-full px-6 py-8` pattern
 
 ### Font + branding
 - Caveat font imported via `next/font/google` with CSS variable `--font-caveat`
 - Brand text uses `font-caveat text-xl font-bold` across sidebar header, mobile header
 - Logo: `bg-primary/10 ring-2 ring-primary/30` with `object-contain p-0.5` for visibility
 
-**State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. No commit made — awaiting user review.
+### Avatar profile + logo fix (post-commit)
+- Header `User` icon replaced with shadcn `Avatar` showing user initials (first 2 chars of email)
+- Avatar uses `bg-primary/10 text-primary` for brand consistency
+- Logo button `overflow-hidden` removed so doodle image no longer clips
+- Logo container `h-8 w-8` → `h-10 w-10` for better visibility
+- Logo is now clickable (button calling `toggleSidebar`) — clicking collapsed logo expands sidebar
+- Toggle icon aligned in same row as logo + brand, hidden when collapsed
+
+**State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. Committed as `1bf711b`.
