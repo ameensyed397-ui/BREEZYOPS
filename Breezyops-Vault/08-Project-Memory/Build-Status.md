@@ -5,7 +5,7 @@ tags: [memory, status]
 
 Snapshot of what's actually built in `breezyops/` vs. the [[Feature-Index|13-feature spec]]. Update this after every feature lands — this is the "state of the world" for the code, same role [[Project-Context]] plays for the business. See [[Build-Log]] for the change-by-change history and reasoning.
 
-**Last updated:** 2026-07-16 (v0.10 — shadcn sidebar, avatar profile, logo fix, day view Notion-style, dropdown overlap, badge consistency, visual hierarchy, new customer flow, Caveat font)
+**Last updated:** 2026-07-16 (v0.11 — appointment detail sheet, vertical button stacking across all modals, appointment status actions)
 
 ## Phase 1 progress
 
@@ -43,7 +43,7 @@ flowchart TB
 | Lead webhook intake | 🟢 Code complete, using Supabase JS client, timing-safe secret, error handling |
 | Leads inbox UI (F01) | 🟢 Built, real DB data, mutations wired to server actions with revalidation |
 | Pipeline boards (F02) | 🟢 Built, real DB data, drag-and-drop persists via `updateLeadStatusAction` / `updateDealStageAction` |
-| Schedule (F03) | 🟢 Built, real DB data, day/week/month view, booking sheet wired to `createAppointmentAction`. Day view: Notion-style column layout with hour grid lines, overlap detection, left accent border. Week view: today highlight with bg-primary/5. |
+| Schedule (F03) | 🟢 Built, real DB data, day/week/month view, booking sheet wired to `createAppointmentAction`. Day view: Notion-style column layout with hour grid lines, overlap detection, left accent border. Click-to-open appointment detail sheet with status actions (complete, reschedule, no-show, cancel). Week view: today highlight with bg-primary/5. |
 | Customers (F05) | 🟢 Built, real DB data — list (All/B2C/B2B tabs, search, revenue) + detail sheet + [id] page |
 | Jobs (F04) | 🟢 Built, real DB data — list (All/Scheduled/Active/Done tabs, search) + detail sheet wired to `updateJobStatusAction` |
 | Invoices (F09) | 🟢 Built, real DB data — list (All/Draft/Sent/Paid/Overdue tabs, search) + detail sheet wired to `updateInvoiceStatusAction` |
@@ -225,5 +225,7 @@ Per [[Build-Phases]], exit criteria is *10 real jobs run fully through Breezyops
 | Week view today highlight | ✅ resolved (v0.10) — bg-primary/5 + font-semibold date |
 | Sidebar (shadcn) | ✅ resolved (v0.10) — collapsible icon mode, active nav highlighting, Caveat font brand |
 | Layout spacing consistency | ✅ resolved (v0.10) — all pages w-full px-6 py-8, fills available space |
+| Appointment detail view | ✅ resolved (v0.11) — click-to-open sheet with customer, technician, service, locality, time, notes, status actions |
+| Modal button stacking | ✅ resolved (v0.11) — all sheet/dialog footers use vertical layout with w-full buttons |
 
 **Remaining:** E2E test framework (Playwright/Cypress), notification system, command palette

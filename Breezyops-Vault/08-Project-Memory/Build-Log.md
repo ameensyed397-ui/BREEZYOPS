@@ -280,3 +280,38 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 - Toggle icon aligned in same row as logo + brand, hidden when collapsed
 
 **State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. Committed as `1bf711b`.
+
+## 2026-07-16 — `1dccf9f` v0.11 Appointment detail sheet + vertical button stacking
+
+**Why:** schedule page had no way to view appointment details or perform actions on them. Modal footers used horizontal button layout which looked cramped on mobile.
+
+### Appointment detail sheet (`components/schedule/appointment-detail-sheet.tsx`)
+- New component: full detail view with customer, technician, service, locality, time slot, notes
+- Status badge with color coding (scheduled/ rescheduled/done/no_show/cancelled)
+- Action buttons per status:
+  - scheduled → Mark complete, Reschedule, No show, Cancel
+  - rescheduled → Mark complete, No show, Cancel
+  - done/no_show/cancelled → read-only
+- Confirmation AlertDialog before status changes
+- `updateAppointmentStatus` mutation in `queries.ts` with try-catch + mock fallback
+- `updateAppointmentStatusAction` server action revalidating `/schedule` + `/`
+
+### Schedule views wired for click-to-open
+- `day-view.tsx`: appointment cards now clickable with hover ring, `onSelectAppointment` callback
+- `week-view.tsx`: appointment items clickable, `onSelectAppointment` callback
+- `month-view.tsx`: appointment items clickable, `onSelectAppointment` callback
+- `schedule-board.tsx`: manages `selectedAppointment` state, opens detail sheet, optimistic status update
+
+### Vertical button stacking (all 10 modals)
+- `appointment-detail-sheet.tsx`: action buttons changed from `flex flex-wrap gap-2` to `flex flex-col gap-2` with `w-full`
+- `booking-sheet.tsx`: Cancel + Book buttons → `w-full`; AlertDialogFooter → `flex flex-col`
+- `lead-detail-sheet.tsx`: Qualify/Book/Mark lost buttons → `w-full`
+- `deal-detail-sheet.tsx`: View customer button → `w-full`
+- `lead-detail-pipeline-sheet.tsx`: View in inbox button → `w-full`
+- `job-detail-sheet.tsx`: Start/Cancel/Complete/Close buttons → `w-full`
+- `invoice-detail-sheet.tsx`: all 8 button variants → `w-full`, removed `flex-wrap gap-2`
+- `invoice-form-sheet.tsx`: Cancel + Create/Update buttons → `w-full`
+- `document-detail-sheet.tsx`: Download/Delete buttons → `w-full`
+- `b2b-board.tsx`: GST dialog Go back/Mark won buttons → `w-full`, DialogFooter → `flex flex-col`
+
+**State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. Committed as `1dccf9f`.
