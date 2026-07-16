@@ -12,6 +12,7 @@ import { DayView } from "./day-view";
 import { WeekView } from "./week-view";
 import { MonthView } from "./month-view";
 import { BookingSheet } from "./booking-sheet";
+import { AppointmentDetailSheet } from "./appointment-detail-sheet";
 import type { AppointmentRow, CustomerRow } from "@/lib/db/queries";
 
 type Technician = { id: string; fullName: string };
@@ -39,6 +40,8 @@ export function ScheduleBoard({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [items, setItems] = useState(appointments);
   const [bookingOpen, setBookingOpen] = useState(() => !!leadId);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRow | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const loading = !appointments;
 
   const dayItems = useMemo(
@@ -58,6 +61,15 @@ export function ScheduleBoard({
       }
       return nd;
     });
+  }
+
+  function handleSelectAppointment(appt: AppointmentRow) {
+    setSelectedAppointment(appt);
+    setDetailOpen(true);
+  }
+
+  function handleStatusChange(id: string, status: string) {
+    setItems((cur) => cur.map((a) => a.id === id ? { ...a, status } : a));
   }
 
   return (
@@ -109,11 +121,11 @@ export function ScheduleBoard({
           <Skeleton className="h-20 w-full" />
         </div>
       ) : view === "day" ? (
-        <DayView appointments={dayItems} date={selectedDate} loading={false} />
+        <DayView appointments={dayItems} date={selectedDate} loading={false} onSelectAppointment={handleSelectAppointment} />
       ) : view === "week" ? (
-        <WeekView weekOf={selectedDate} appointments={items} onSelectDay={(d) => { setSelectedDate(d); setView("day"); }} />
+        <WeekView weekOf={selectedDate} appointments={items} onSelectDay={(d) => { setSelectedDate(d); setView("day"); }} onSelectAppointment={handleSelectAppointment} />
       ) : (
-        <MonthView monthOf={selectedDate} appointments={items} onSelectDay={(d) => { setSelectedDate(d); setView("day"); }} />
+        <MonthView monthOf={selectedDate} appointments={items} onSelectDay={(d) => { setSelectedDate(d); setView("day"); }} onSelectAppointment={handleSelectAppointment} />
       )}
 
       <BookingSheet
@@ -125,6 +137,13 @@ export function ScheduleBoard({
         existing={items}
         onCreate={(appt) => setItems((cur) => [...cur, appt])}
         leadData={leadName ? { name: leadName, phone: leadPhone, locality: leadLocality, leadId } : null}
+      />
+
+      <AppointmentDetailSheet
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        appointment={selectedAppointment}
+        onStatusChange={handleStatusChange}
       />
     </div>
   );

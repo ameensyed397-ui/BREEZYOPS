@@ -511,6 +511,18 @@ export async function createAppointment(appt: {
   }
 }
 
+export async function updateAppointmentStatus(id: string, status: string) {
+  try {
+    const sb = await createClient();
+    const { error } = await sb.from("appointments").update({
+      status, updated_at: new Date().toISOString(),
+    }).eq("id", id);
+    throwIfError(error, "update appointment");
+  } catch {
+    // mock fallback
+  }
+}
+
 export async function updateJobStatus(id: string, status: string) {
   try {
     const sb = await createClient();

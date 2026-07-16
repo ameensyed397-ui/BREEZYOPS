@@ -5,6 +5,7 @@ import {
   updateLeadStatus as _updateLeadStatus,
   updateDealStage as _updateDealStage,
   createAppointment as _createAppointment,
+  updateAppointmentStatus as _updateAppointmentStatus,
   updateJobStatus as _updateJobStatus,
   updateInvoiceStatus as _updateInvoiceStatus,
   createInvoice as _createInvoice,
@@ -49,6 +50,17 @@ export async function createAppointmentAction(appt: {
     return result;
   } catch (e) {
     console.error("[Action] createAppointmentAction failed:", e);
+    throw e;
+  }
+}
+
+export async function updateAppointmentStatusAction(id: string, status: string) {
+  try {
+    await _updateAppointmentStatus(id, status);
+    revalidatePath("/schedule");
+    revalidatePath("/");
+  } catch (e) {
+    console.error("[Action] updateAppointmentStatusAction failed:", e);
     throw e;
   }
 }

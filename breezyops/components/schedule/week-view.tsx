@@ -21,10 +21,12 @@ export function WeekView({
   weekOf,
   appointments,
   onSelectDay,
+  onSelectAppointment,
 }: {
   weekOf: Date;
   appointments: AppointmentRow[];
   onSelectDay: (d: Date) => void;
+  onSelectAppointment?: (appt: AppointmentRow) => void;
 }) {
   const start = startOfWeek(weekOf);
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -59,7 +61,15 @@ export function WeekView({
               <span className="text-xs text-muted-foreground/60">—</span>
             ) : (
               dayAppts.map((a) => (
-                <div key={a.id} className="rounded-md bg-secondary px-1.5 py-1 text-[11px] leading-tight">
+                <div
+                  key={a.id}
+                  className="rounded-md bg-secondary px-1.5 py-1 text-[11px] leading-tight cursor-pointer hover:bg-secondary/80 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); onSelectAppointment?.(a); }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onSelectAppointment?.(a); } }}
+                  aria-label={`View appointment for ${a.customerName}`}
+                >
                   <span className="font-medium">
                     {new Date(a.startAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                   </span>{" "}

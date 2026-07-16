@@ -116,10 +116,12 @@ export function DayView({
   appointments,
   date,
   loading,
+  onSelectAppointment,
 }: {
   appointments: AppointmentRow[];
   date?: Date;
   loading: boolean;
+  onSelectAppointment?: (appt: AppointmentRow) => void;
 }) {
   const [now, setNow] = useState(new Date());
 
@@ -198,7 +200,14 @@ export function DayView({
                 paddingRight: totalColumns > 1 ? 4 : 0,
               }}
             >
-              <Card className="flex h-full w-full gap-0 overflow-hidden border-l-4 border-l-primary p-0">
+              <Card
+                className="flex h-full w-full gap-0 overflow-hidden border-l-4 border-l-primary p-0 cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                onClick={() => onSelectAppointment?.(a)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectAppointment?.(a); } }}
+                aria-label={`View appointment for ${a.customerName}`}
+              >
                 <div className="flex flex-1 flex-col justify-center gap-1 px-3 py-2 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-medium">{a.customerName}</span>

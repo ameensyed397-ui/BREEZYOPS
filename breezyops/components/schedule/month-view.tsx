@@ -50,10 +50,12 @@ export function MonthView({
   monthOf,
   appointments,
   onSelectDay,
+  onSelectAppointment,
 }: {
   monthOf: Date;
   appointments: AppointmentRow[];
   onSelectDay: (d: Date) => void;
+  onSelectAppointment?: (appt: AppointmentRow) => void;
 }) {
   const monthStart = startOfMonth(monthOf);
   const monthEnd = endOfMonth(monthOf);
@@ -114,7 +116,12 @@ export function MonthView({
                 {dayAppts.slice(0, 3).map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center gap-1 rounded px-1 py-0.5 text-[10px] leading-tight bg-secondary/80 truncate"
+                    className="flex items-center gap-1 rounded px-1 py-0.5 text-[10px] leading-tight bg-secondary/80 truncate cursor-pointer hover:bg-secondary transition-colors"
+                    onClick={(e) => { e.stopPropagation(); onSelectAppointment?.(a); }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onSelectAppointment?.(a); } }}
+                    aria-label={`View appointment for ${a.customerName}`}
                   >
                     <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", statusDot[a.status] ?? "bg-muted-foreground")} />
                     <span className="font-medium truncate">
