@@ -1,15 +1,15 @@
-import { db, schema } from "@/lib/db";
-import { mockAppointments, mockCustomers, mockTechnicians } from "@/lib/db/mock";
+import { fetchAppointments, fetchCustomers, fetchTechnicians } from "@/lib/db/queries";
 import { ScheduleBoard } from "@/components/schedule/schedule-board";
 
 export const dynamic = "force-dynamic";
 
 export default async function SchedulePage() {
-  // Real appointments when the DB is configured; sample data otherwise.
-  const appointments = db ? await db.select().from(schema.appointments) : mockAppointments;
+  const [appointments, technicians, customers] = await Promise.all([
+    fetchAppointments(), fetchTechnicians(), fetchCustomers(),
+  ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="w-full px-6 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Schedule</h1>
         <p className="text-sm text-muted-foreground">
@@ -17,9 +17,9 @@ export default async function SchedulePage() {
         </p>
       </header>
       <ScheduleBoard
-        appointments={appointments as any}
-        customers={mockCustomers}
-        technicians={mockTechnicians}
+        appointments={appointments}
+        customers={customers}
+        technicians={technicians}
       />
     </div>
   );

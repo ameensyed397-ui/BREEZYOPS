@@ -1,15 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Plus, CalendarIcon } from "lucide-react";
 import { DayView } from "./day-view";
 import { WeekView } from "./week-view";
+import { MonthView } from "./month-view";
 import { BookingSheet } from "./booking-sheet";
-import type { MockAppointment, MockCustomer, MockTechnician } from "@/lib/db/mock";
+import type { AppointmentRow, CustomerRow } from "@/lib/db/queries";
+
+type Technician = { id: string; fullName: string };
 
 function sameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString();
@@ -20,15 +25,21 @@ export function ScheduleBoard({
   customers,
   technicians,
 }: {
-  appointments: MockAppointment[];
-  customers: MockCustomer[];
-  technicians: MockTechnician[];
+  appointments: AppointmentRow[];
+  customers: CustomerRow[];
+  technicians: Technician[];
 }) {
-  const [view, setView] = useState<"day" | "week">("day");
+  const searchParams = useSearchParams();
+  const leadName = searchParams.get("name");
+  const leadPhone = searchParams.get("phone");
+  const leadLocality = searchParams.get("locality");
+  const leadId = searchParams.get("leadId");
+
+  const [view, setView] = useState<"day" | "week" | "month">("day");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [items, setItems] = useState(appointments);
-  const [bookingOpen, setBookingOpen] = useState(false);
-  const [loading] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(() => !!leadId);
+  const loading = !appointments;
 
   const dayItems = useMemo(
     () => items.filter((a) => sameDay(new Date(a.startAt), selectedDate)),
@@ -38,7 +49,13 @@ export function ScheduleBoard({
   function shiftDay(delta: number) {
     setSelectedDate((d) => {
       const nd = new Date(d);
-      nd.setDate(nd.getDate() + delta);
+      if (view === "month") {
+        nd.setMonth(nd.getMonth() + (delta > 0 ? 1 : -1));
+      } else if (view === "week") {
+        nd.setDate(nd.getDate() + delta * 7);
+      } else {
+        nd.setDate(nd.getDate() + delta);
+      }
       return nd;
     });
   }
@@ -47,7 +64,7 @@ export function ScheduleBoard({
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => shiftDay(view === "day" ? -1 : -7)}>
+          <Button variant="outline" size="icon" onClick={() => shiftDay(view === "day" ? -1 : -7)} aria-label="Previous day">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Popover>
@@ -65,17 +82,18 @@ export function ScheduleBoard({
               />
             </PopoverContent>
           </Popover>
-          <Button variant="outline" size="icon" onClick={() => shiftDay(view === "day" ? 1 : 7)}>
+          <Button variant="outline" size="icon" onClick={() => shiftDay(view === "day" ? 1 : 7)} aria-label="Next day">
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button variant="ghost" onClick={() => setSelectedDate(new Date())}>Today</Button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week")}>
+          <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
             <TabsList>
               <TabsTrigger value="day">Day</TabsTrigger>
               <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="month">Month</TabsTrigger>
             </TabsList>
           </Tabs>
           <Button onClick={() => setBookingOpen(true)}>
@@ -84,10 +102,18 @@ export function ScheduleBoard({
         </div>
       </div>
 
-      {view === "day" ? (
-        <DayView appointments={dayItems} loading={loading} />
-      ) : (
+      {loading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      ) : view === "day" ? (
+        <DayView appointments={dayItems} date={selectedDate} loading={false} />
+      ) : view === "week" ? (
         <WeekView weekOf={selectedDate} appointments={items} onSelectDay={(d) => { setSelectedDate(d); setView("day"); }} />
+      ) : (
+        <MonthView monthOf={selectedDate} appointments={items} onSelectDay={(d) => { setSelectedDate(d); setView("day"); }} />
       )}
 
       <BookingSheet
@@ -98,6 +124,7 @@ export function ScheduleBoard({
         technicians={technicians}
         existing={items}
         onCreate={(appt) => setItems((cur) => [...cur, appt])}
+        leadData={leadName ? { name: leadName, phone: leadPhone, locality: leadLocality, leadId } : null}
       />
     </div>
   );

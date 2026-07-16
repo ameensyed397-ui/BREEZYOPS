@@ -1,5 +1,5 @@
 import {
-  pgTable, pgEnum, uuid, text, boolean, timestamp, numeric, date, jsonb, bigint,
+  pgTable, pgEnum, uuid, text, boolean, timestamp, numeric, date, jsonb, bigint, index, integer,
 } from "drizzle-orm/pg-core";
 
 // ---- Enums ----
@@ -11,6 +11,7 @@ export const dealStage = pgEnum("deal_stage", ["new", "qualified", "survey", "pr
 export const jobStatus = pgEnum("job_status", ["scheduled", "dispatched", "in_progress", "completed", "cancelled"]);
 export const invoiceStatus = pgEnum("invoice_status", ["draft", "sent", "paid", "overdue", "void"]);
 export const mediaCategory = pgEnum("media_category", ["before", "after", "issue", "other"]);
+export const documentType = pgEnum("document_type", ["invoice", "quote", "contract", "sop", "report", "other"]);
 export const appointmentStatus = pgEnum("appointment_status", ["scheduled", "rescheduled", "cancelled", "no_show", "done"]);
 
 const base = {
@@ -127,7 +128,9 @@ export const invoices = pgTable("invoices", {
   customerId: uuid("customer_id").references(() => customers.id),
   jobId: uuid("job_id").references(() => jobs.id),
   number: text("number").unique(),
+  type: text("type").default("invoice"),
   status: invoiceStatus("status").default("draft"),
+  items: jsonb("items"),
   subtotal: numeric("subtotal"),
   gstApplicable: boolean("gst_applicable").default(false),
   gstRate: numeric("gst_rate"),
@@ -135,7 +138,20 @@ export const invoices = pgTable("invoices", {
   total: numeric("total"),
   issuedAt: timestamp("issued_at", { withTimezone: true }),
   dueAt: timestamp("due_at", { withTimezone: true }),
+  notes: text("notes"),
+  terms: text("terms"),
+  validityDays: integer("validity_days"),
   pdfPath: text("pdf_path"),
+});
+
+export const documents = pgTable("documents", {
+  ...base,
+  customerId: uuid("customer_id").references(() => customers.id),
+  jobId: uuid("job_id").references(() => jobs.id),
+  type: documentType("type").notNull(),
+  name: text("name").notNull(),
+  storagePath: text("storage_path").notNull(),
+  createdBy: uuid("created_by").references(() => profiles.id),
 });
 
 export const media = pgTable("media", {
@@ -165,6 +181,31 @@ export const activityLog = pgTable("activity_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+// ---- Indexes ----
+export const leadsStatusIdx = index("leads_status_idx").on(leads.status);
+export const leadsChannelIdx = index("leads_channel_idx").on(leads.channel);
+export const leadsAssignedToIdx = index("leads_assigned_to_idx").on(leads.assignedTo);
+export const leadsCreatedAtIdx = index("leads_created_at_idx").on(leads.createdAt);
+export const leadsSlaDueAtIdx = index("leads_sla_due_at_idx").on(leads.slaDueAt);
+export const dealsStageIdx = index("deals_stage_idx").on(deals.stage);
+export const dealsOwnerIdIdx = index("deals_owner_id_idx").on(deals.ownerId);
+export const jobsStatusIdx = index("jobs_status_idx").on(jobs.status);
+export const jobsTechnicianIdx = index("jobs_technician_id_idx").on(jobs.technicianId);
+export const jobsScheduledAtIdx = index("jobs_scheduled_at_idx").on(jobs.scheduledAt);
+export const jobsCustomerIdx = index("jobs_customer_id_idx").on(jobs.customerId);
+export const appointmentsTechnicianIdx = index("appointments_technician_id_idx").on(appointments.technicianId);
+export const appointmentsStartAtIdx = index("appointments_start_at_idx").on(appointments.startAt);
+export const appointmentsStatusIdx = index("appointments_status_idx").on(appointments.status);
+export const invoicesStatusIdx = index("invoices_status_idx").on(invoices.status);
+export const invoicesCustomerIdx = index("invoices_customer_id_idx").on(invoices.customerId);
+export const invoicesNumberIdx = index("invoices_number_idx").on(invoices.number);
+export const documentsCustomerIdx = index("documents_customer_id_idx").on(documents.customerId);
+export const documentsTypeIdx = index("documents_type_idx").on(documents.type);
+export const customersLocalityIdx = index("customers_locality_id_idx").on(customers.localityId);
+export const customersDeletedAtIdx = index("customers_deleted_at_idx").on(customers.deletedAt);
+export const activityLogEntityIdx = index("activity_log_entity_idx").on(activityLog.entity, activityLog.entityId);
+
 export type Lead = typeof leads.$inferSelect;
 export type Deal = typeof deals.$inferSelect;
 export type Appointment = typeof appointments.$inferSelect;
+export type Document = typeof documents.$inferSelect;

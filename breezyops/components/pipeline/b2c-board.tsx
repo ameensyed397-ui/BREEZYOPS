@@ -1,14 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { KanbanBoard, type KanbanColumn } from "./kanban-board";
 import { LeadPipelineCard } from "./lead-pipeline-card";
+import { LeadDetailPipelineSheet } from "./lead-detail-pipeline-sheet";
 import { Input } from "@/components/ui/input";
-import type { Lead } from "@/lib/db/schema";
+import type { LeadRow } from "@/lib/db/queries";
 import { toast } from "sonner";
+import { updateLeadStatusAction } from "@/app/actions";
 
-type LeadStage = Exclude<NonNullable<Lead["status"]>, "lost">;
-type L = Lead & { locality?: string; stage: LeadStage };
+type LeadStage = "new" | "qualified" | "booked" | "completed" | "paid" | "retained";
+type L = LeadRow & { stage: LeadStage };
 
 const columns: KanbanColumn<LeadStage>[] = [
   { id: "new", label: "New" },
@@ -19,8 +22,10 @@ const columns: KanbanColumn<LeadStage>[] = [
   { id: "retained", label: "Retained" },
 ];
 
-export function B2CBoard({ leads }: { leads: (Lead & { locality?: string })[] }) {
+export function B2CBoard({ leads }: { leads: LeadRow[] }) {
   const [search, setSearch] = useState("");
+  const [selectedLead, setSelectedLead] = useState<L | null>(null);
+  const router = useRouter();
 
   const items: L[] = useMemo(
     () =>
@@ -36,9 +41,14 @@ export function B2CBoard({ leads }: { leads: (Lead & { locality?: string })[] })
     [leads, search]
   );
 
-  // Stage changes are optimistic-only until the DB is wired (see lib/db/index.ts).
   async function handleMove(id: string, stage: LeadStage) {
-    toast.success(`Moved to ${stage}.`);
+    try {
+      await updateLeadStatusAction(id, stage);
+      toast.success(`Moved to ${stage}.`);
+      router.refresh();
+    } catch {
+      toast.error("Failed to move. Please try again.");
+    }
   }
 
   return (
@@ -48,15 +58,18 @@ export function B2CBoard({ leads }: { leads: (Lead & { locality?: string })[] })
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="mb-4 max-w-xs"
+        aria-label="Search leads"
       />
       <KanbanBoard
         columns={columns}
         items={items}
         renderCard={(item, aging) => <LeadPipelineCard lead={item} aging={aging} />}
         onMove={handleMove}
+        onSelectItem={(id) => { const l = items.find((x) => x.id === id); if (l) setSelectedLead(l); }}
         getLastActivity={(item) => item.updatedAt}
         emptyHint="No leads at this stage."
       />
+      <LeadDetailPipelineSheet lead={selectedLead} onOpenChange={(o) => !o && setSelectedLead(null)} />
     </div>
   );
 }

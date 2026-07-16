@@ -209,3 +209,66 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 - Extracted `GSTIN` constant and `DEFAULT_GST_RATE` constant
 
 **State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. All mutation functions have try-catch, all error boundaries log, all server actions have error handling.
+
+## 2026-07-16 — v0.10 Day view fix, shadcn sidebar, dropdown overlap, consistency sweep
+
+**Why:** day view appointments were all absolutely-positioned at `left-0 right-0` causing visual overlap. Dropdowns had no background (missing `--popover` token). Sidebar needed proper 2-state toggle with active highlighting. Layout spacing was inconsistent across pages. Badge colors were inconsistent across components.
+
+### Day view Notion-style rewrite (`components/schedule/day-view.tsx`)
+- Complete rewrite: hour grid lines (8AM–8PM) with left time gutter (w-64)
+- Overlap detection algorithm: sorts by start time, assigns columns, tracks max columns per overlap group
+- Each card: `left: ${(col/total)*100}%`, `width: ${(1/total)*100}%` — no more stacking
+- Left accent border (`border-l-4 border-l-primary`) for visual hierarchy
+- Now indicator: red dot + line at current time
+
+### Shadcn sidebar (`components/app-sidebar.tsx`, `app/(app)/layout.tsx`)
+- Installed `sidebar` + `alert-dialog` shadcn components
+- Created `components/app-sidebar.tsx` with `SidebarTrigger` in header (next to logo)
+- Active nav item: `bg-primary/10 text-primary font-semibold border-l-3 border-l-primary` (blue accent bar)
+- Collapsible icon mode — toggles between expanded (full nav) and icon-only (just icons)
+- Sidebar state persisted via cookie (`sidebar_state`)
+- Rewrote `layout.tsx` with `SidebarProvider` + `AppSidebar` + `SidebarInset`
+- Deleted old `components/layout/sidebar.tsx`
+
+### Dropdown overlap fix (`components/ui/select.tsx`, `components/ui/sheet.tsx`)
+- **Root cause:** `--popover` and `--popover-foreground` CSS variables were missing — `bg-popover` resolved to transparent
+- Added `--popover` tokens to `:root` and `.dark` in `globals.css`, mapped in `@theme inline`
+- `SelectItem` now has `hover:bg-accent/80` in addition to `focus:bg-accent`
+- Restored `SheetBody` (lost from shadcn sidebar overwrite) with custom `px-6 py-5` padding
+- Restored custom `SheetHeader`/`SheetFooter` padding
+
+### Badge consistency
+- `day-view.tsx`: `scheduled: "outline"`, `cancelled: "destructive"` (was `"default"` / `"outline"`)
+- `deal-pipeline-card.tsx`: added `lost: "bg-red-100 text-red-700 ..."` to stageColors
+- `lead-pipeline-card.tsx`: added `lost` to statusColors
+- `customer-detail-sheet.tsx` + `customers/[id]/page.tsx`: full `statusVariant` maps for jobs and invoices (was ternary chains)
+
+### Visual hierarchy
+- `deal-pipeline-card.tsx`: deal value `text-xs font-medium` → `text-sm font-semibold`
+- `customer-list.tsx`: revenue `font-medium` → `font-semibold`
+- `invoice-list.tsx`: invoice total `font-medium` → `font-semibold`
+- `customers/[id]/page.tsx`: "Last job" `text-sm font-medium` → `text-2xl font-semibold`
+
+### New customer booking flow
+- `booking-sheet.tsx`: "＋ Create new customer…" option in Customer Select → AlertDialog → redirect to `/customers?new=1&returnTo=/schedule`
+- `lead-detail-sheet.tsx`: "Book Now" passes lead data as URL search params (`name`, `phone`, `locality`, `leadId`)
+- `schedule-board.tsx`: reads URL params, opens booking form pre-filled when `leadId` is present
+
+### Header + jobs cleanup
+- `header.tsx`: removed dead search input + `search` state + `Search`/`Input` imports
+- `job-list.tsx`: added `Search` icon to search input with `pl-9` padding
+
+### Week view today highlight
+- `week-view.tsx`: `isToday && "border-primary"` → `isToday && "border-primary bg-primary/5"` + `font-semibold` date number
+
+### Layout spacing consistency
+- Dashboard: `px-4 py-6 sm:px-6 lg:px-8` → `mx-auto max-w-6xl px-6 py-8` (matches all other pages)
+- Removed redundant `p-6` from layout `<main>` — pages control their own spacing
+- All 9 pages now use identical `mx-auto max-w-6xl px-6 py-8` pattern
+
+### Font + branding
+- Caveat font imported via `next/font/google` with CSS variable `--font-caveat`
+- Brand text uses `font-caveat text-xl font-bold` across sidebar header, mobile header
+- Logo: `bg-primary/10 ring-2 ring-primary/30` with `object-contain p-0.5` for visibility
+
+**State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. No commit made — awaiting user review.

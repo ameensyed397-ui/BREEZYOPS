@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wrench, MapPin, User, Calendar, AlertTriangle } from "lucide-react";
+import { Wrench, MapPin, User, Calendar, AlertTriangle, Search } from "lucide-react";
 import { JobDetailSheet } from "./job-detail-sheet";
-import type { MockJob } from "@/lib/db/mock";
+import type { JobRow } from "@/lib/db/queries";
+import { formatDate, statusLabel } from "@/lib/format";
 
-type J = MockJob;
+type J = JobRow;
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   scheduled: "outline",
@@ -16,19 +18,6 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
   completed: "default",
   cancelled: "destructive",
 };
-
-const statusLabel: Record<string, string> = {
-  scheduled: "Scheduled",
-  dispatched: "Dispatched",
-  in_progress: "In progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
-function formatDate(d?: Date | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
 
 function formatTime(d?: Date | null) {
   if (!d) return "";
@@ -92,7 +81,7 @@ export function JobList({ jobs }: { jobs: J[] }) {
   return (
     <>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "scheduled" | "in_progress" | "completed")}>
           <TabsList>
             <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
             <TabsTrigger value="scheduled">Scheduled ({stats.scheduled})</TabsTrigger>
@@ -101,13 +90,17 @@ export function JobList({ jobs }: { jobs: J[] }) {
           </TabsList>
         </Tabs>
         <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search customer, service, locality…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search customer, service…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search jobs"
+              className="pl-9 sm:w-64"
+            />
+          </div>
           <div className="hidden text-right text-xs text-muted-foreground sm:block">
             {stats.today} job{stats.today !== 1 ? "s" : ""} today
           </div>
@@ -124,6 +117,7 @@ export function JobList({ jobs }: { jobs: J[] }) {
             <li key={job.id}>
               <button
                 onClick={() => setSelected(job)}
+                aria-label={`View ${job.customerName} job details`}
                 className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-secondary/60"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
@@ -133,7 +127,7 @@ export function JobList({ jobs }: { jobs: J[] }) {
                   <div className="flex items-center gap-2">
                     <span className="truncate font-medium">{job.customerName}</span>
                     <Badge variant={statusVariant[job.status]} className="text-[10px]">
-                      {statusLabel[job.status]}
+                      {statusLabel(job.status)}
                     </Badge>
                     {isToday(job.scheduledAt) && job.status !== "completed" && job.status !== "cancelled" && (
                       <Badge variant="destructive" className="gap-1 text-[10px]">

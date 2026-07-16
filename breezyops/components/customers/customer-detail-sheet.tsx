@@ -2,54 +2,69 @@
 
 import { Badge } from "@/components/ui/badge";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetBody,
 } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MapPin, Phone, Mail, Building2, FileText, Wrench, Calendar, Shield } from "lucide-react";
-import type { MockCustomer } from "@/lib/db/mock";
+import { MapPin, Phone, Mail, Building2, FileText, Wrench, Calendar, Shield, IndianRupee } from "lucide-react";
+import Link from "next/link";
+import type { CustomerRow } from "@/lib/db/queries";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { InfoCard } from "@/components/ui/info-card";
 
-function formatRevenue(amount?: number) {
-  if (!amount) return "₹0";
-  return `₹${amount.toLocaleString("en-IN")}`;
-}
+const jobStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  scheduled: "outline",
+  dispatched: "secondary",
+  in_progress: "default",
+  completed: "default",
+  cancelled: "destructive",
+};
 
-function formatDate(d?: Date | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
+const invoiceStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  draft: "secondary",
+  sent: "outline",
+  paid: "default",
+  overdue: "destructive",
+  void: "secondary",
+  accepted: "default",
+  rejected: "destructive",
+  expired: "secondary",
+};
 
 export function CustomerDetailSheet({
   customer,
   onOpenChange,
 }: {
-  customer: MockCustomer | null;
+  customer: CustomerRow | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const jobs = customer?.jobs ?? [];
+  const invoices = customer?.invoices ?? [];
+
   return (
     <Sheet open={!!customer} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        {customer && (
-          <>
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-2">
-                {customer.name}
-                <Badge variant="outline" className={
-                  customer.segment === "b2b"
-                    ? "border-accent text-accent"
-                    : "border-muted-foreground/40 text-muted-foreground"
-                }>
-                  {customer.segment.toUpperCase()}
-                </Badge>
-                {customer.gstRequired && (
-                  <Badge variant="secondary" className="text-[10px]">GST</Badge>
-                )}
-              </SheetTitle>
-              <SheetDescription>
-                Customer since {formatDate(customer.createdAt)}
-              </SheetDescription>
-            </SheetHeader>
+      <SheetContent className="w-full sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            {customer?.name}
+            <Badge variant="outline" className={
+              customer?.segment === "b2b"
+                ? "border-accent text-accent"
+                : "border-muted-foreground/40 text-muted-foreground"
+            }>
+              {customer?.segment?.toUpperCase()}
+            </Badge>
+            {customer?.gstRequired && (
+              <Badge variant="secondary" className="text-[10px]">GST</Badge>
+            )}
+          </SheetTitle>
+          <SheetDescription>
+            Customer since {formatDate(customer?.createdAt ?? null)}
+          </SheetDescription>
+        </SheetHeader>
 
-            <Tabs defaultValue="overview" className="mt-4">
+        <SheetBody>
+          {customer && (
+            <Tabs defaultValue="overview" className="mt-1">
               <TabsList className="w-full">
                 <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
                 <TabsTrigger value="jobs" className="flex-1">Jobs</TabsTrigger>
@@ -72,28 +87,60 @@ export function CustomerDetailSheet({
                 )}
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard icon={Wrench} label="Jobs" value={String(customer.jobCount ?? 0)} />
-                  <StatCard icon={FileText} label="Revenue" value={formatRevenue(customer.totalRevenue)} />
+                  <StatCard icon={FileText} label="Revenue" value={formatCurrency(customer.totalRevenue ?? 0)} />
                   <StatCard icon={Calendar} label="Last job" value={customer.lastJob ?? "None"} />
                 </div>
               </TabsContent>
 
               <TabsContent value="jobs" className="pt-4">
-                {customer.jobCount === 0 ? (
+                {jobs.length === 0 ? (
                   <EmptyState message="No jobs yet for this customer." />
                 ) : (
                   <div className="space-y-2">
-                    <JobRow title={customer.lastJob ?? "Service visit"} status="completed" date={customer.updatedAt} />
-                    {customer.jobCount && customer.jobCount > 1 && (
-                      <p className="text-xs text-muted-foreground text-center pt-2">
-                        + {customer.jobCount - 1} more jobs
-                      </p>
-                    )}
+                    {jobs.map((job) => (
+                      <div key={job.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm">{job.summary ?? "Service visit"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={jobStatusVariant[job.status] ?? "secondary"} className="text-[10px]">
+                            {job.status.replace(/_/g, " ")}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{formatDate(job.scheduledAt)}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <Link href="/jobs" className="block text-center text-xs text-primary hover:underline pt-2">
+                      View all jobs →
+                    </Link>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="invoices" className="pt-4">
-                <EmptyState message="Invoices will appear here once invoicing (F09) is connected." />
+                {invoices.length === 0 ? (
+                  <EmptyState message="No invoices yet for this customer." />
+                ) : (
+                  <div className="space-y-2">
+                    {invoices.map((inv) => (
+                      <div key={inv.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm">{inv.number ?? "Draft"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={invoiceStatusVariant[inv.status] ?? "secondary"} className="text-[10px]">
+                            {inv.status}
+                          </Badge>
+                          <span className="flex items-center gap-1 text-xs font-medium text-foreground">
+                            <IndianRupee className="h-3 w-3" />{formatCurrency(Number(inv.total ?? 0))}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="sites" className="pt-4">
@@ -116,21 +163,10 @@ export function CustomerDetailSheet({
                 )}
               </TabsContent>
             </Tabs>
-          </>
-        )}
+          )}
+        </SheetBody>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function InfoCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
-  return (
-    <div className="rounded-md bg-secondary/40 p-3">
-      <div className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase text-muted-foreground">
-        <Icon className="h-3 w-3" />{label}
-      </div>
-      <div className="truncate text-sm">{value}</div>
-    </div>
   );
 }
 
@@ -140,23 +176,6 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
       <Icon className="mx-auto mb-1 h-4 w-4 text-primary" />
       <div className="text-lg font-semibold">{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function JobRow({ title, status, date }: { title: string; status: string; date: Date }) {
-  return (
-    <div className="flex items-center justify-between rounded-md border px-4 py-2.5">
-      <div className="flex items-center gap-2">
-        <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-sm">{title}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Badge variant={status === "completed" ? "default" : "secondary"} className="text-[10px]">
-          {status}
-        </Badge>
-        <span className="text-xs text-muted-foreground">{formatDate(date)}</span>
-      </div>
     </div>
   );
 }

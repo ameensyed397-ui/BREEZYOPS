@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
-import type { MockAppointment } from "@/lib/db/mock";
+import type { AppointmentRow } from "@/lib/db/queries";
 
 function startOfWeek(date: Date) {
   const d = new Date(date);
   const day = d.getDay();
-  d.setDate(d.getDate() - day);
+  const diff = (day + 6) % 7;
+  d.setDate(d.getDate() - diff);
   d.setHours(0, 0, 0, 0);
   return d;
 }
@@ -13,13 +14,16 @@ function sameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString();
 }
 
+const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 export function WeekView({
   weekOf,
   appointments,
   onSelectDay,
 }: {
   weekOf: Date;
-  appointments: MockAppointment[];
+  appointments: AppointmentRow[];
   onSelectDay: (d: Date) => void;
 }) {
   const start = startOfWeek(weekOf);
@@ -31,7 +35,8 @@ export function WeekView({
   const today = new Date();
 
   return (
-    <div className="grid grid-cols-7 gap-2">
+    <div className="overflow-x-auto">
+      <div className="grid grid-cols-7 gap-2 min-w-[700px]">
       {days.map((day) => {
         const dayAppts = appointments
           .filter((a) => sameDay(new Date(a.startAt), day))
@@ -41,12 +46,13 @@ export function WeekView({
           <button
             key={day.toISOString()}
             onClick={() => onSelectDay(day)}
+            aria-label={`${dayNames[(day.getDay() + 6) % 7]}, ${day.getDate()} ${monthNames[day.getMonth()]}`}
             className={cn(
-              "flex min-h-40 flex-col gap-1 rounded-lg border p-2 text-left transition-colors hover:bg-secondary/60",
-              isToday && "border-primary"
+              "flex min-h-24 flex-col gap-1 rounded-lg border p-2 text-left transition-colors hover:bg-secondary/60 sm:min-h-40",
+              isToday && "border-primary bg-primary/5"
             )}
           >
-            <div className="mb-1 text-xs font-medium text-muted-foreground">
+            <div className={cn("mb-1 text-xs font-medium text-muted-foreground", isToday && "font-semibold text-foreground")}>
               {day.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" })}
             </div>
             {dayAppts.length === 0 ? (
@@ -64,6 +70,7 @@ export function WeekView({
           </button>
         );
       })}
+      </div>
     </div>
   );
 }

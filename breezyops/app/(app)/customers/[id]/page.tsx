@@ -1,42 +1,41 @@
 import { notFound } from "next/navigation";
-import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
-import { mockCustomers } from "@/lib/db/mock";
+import { fetchCustomerById } from "@/lib/db/queries";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MapPin, Phone, Mail, Building2, FileText, Wrench, Calendar, Shield, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { formatRevenue } from "@/lib/format";
+
+const jobStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  scheduled: "outline",
+  dispatched: "secondary",
+  in_progress: "default",
+  completed: "default",
+  cancelled: "destructive",
+};
+
+const invoiceStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  draft: "secondary",
+  sent: "outline",
+  paid: "default",
+  overdue: "destructive",
+  void: "secondary",
+  accepted: "default",
+  rejected: "destructive",
+  expired: "secondary",
+};
 
 export const dynamic = "force-dynamic";
 
-function formatDate(d?: Date | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
-
-function formatRevenue(amount?: number) {
-  if (!amount) return "₹0";
-  return `₹${amount.toLocaleString("en-IN")}`;
-}
-
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const c = await fetchCustomerById(id);
 
-  let customer = null;
-  if (db) {
-    const rows = await db.select().from(schema.customers).where(eq(schema.customers.id, id)).limit(1);
-    customer = rows[0] ?? null;
-  } else {
-    customer = mockCustomers.find((c) => c.id === id) ?? null;
-  }
-
-  if (!customer) notFound();
-
-  const c = customer as typeof mockCustomers[number];
+  if (!c) notFound();
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="w-full px-6 py-8">
       <Link href="/customers" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Back to customers
       </Link>
@@ -57,7 +56,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             )}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Customer since {formatDate(c.createdAt)}
+            Customer since {c.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
           </p>
         </div>
       </header>
@@ -85,7 +84,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 text-primary" /> Last job
           </div>
-          <div className="text-sm font-medium truncate">{c.lastJob ?? "None"}</div>
+          <div className="text-2xl font-semibold truncate">{c.lastJob ?? "None"}</div>
         </Card>
       </div>
 
@@ -125,19 +124,20 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
         <TabsContent value="jobs" className="mt-4">
           <Card className="p-4">
-            {(c.jobCount ?? 0) === 0 ? (
+            {(!c.jobs || c.jobs.length === 0) ? (
               <div className="py-10 text-center text-sm text-muted-foreground">No jobs yet for this customer.</div>
             ) : (
               <div className="space-y-2">
-                <div className="flex items-center justify-between rounded-md border px-4 py-2.5">
-                  <span className="text-sm">{c.lastJob ?? "Service visit"}</span>
-                  <Badge variant="default" className="text-[10px]">completed</Badge>
-                </div>
-                {(c.jobCount ?? 0) > 1 && (
-                  <p className="text-xs text-muted-foreground text-center pt-2">
-                    + {(c.jobCount ?? 1) - 1} more jobs
-                  </p>
-                )}
+                {c.jobs.map((job) => (
+                  <div key={job.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
+                    <span className="text-sm">{job.summary ?? "Service visit"}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={jobStatusVariant[job.status] ?? "secondary"} className="text-[10px]">
+                        {job.status.replace(/_/g, " ")}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>
@@ -145,9 +145,28 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
         <TabsContent value="invoices" className="mt-4">
           <Card className="p-4">
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              Invoices will appear here once invoicing (F09) is connected.
-            </div>
+            {(!c.invoices || c.invoices.length === 0) ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
+                No invoices for this customer yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {c.invoices.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between rounded-md border px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-sm">{inv.number ?? "Draft"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={invoiceStatusVariant[inv.status] ?? "secondary"} className="text-[10px]">
+                        {inv.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </TabsContent>
 

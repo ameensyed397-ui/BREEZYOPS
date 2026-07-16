@@ -3,18 +3,14 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, User, MapPin, Wrench, IndianRupee } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Building2, User, MapPin, Wrench, IndianRupee, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { CustomerDetailSheet } from "./customer-detail-sheet";
-import type { MockCustomer } from "@/lib/db/mock";
+import type { CustomerRow } from "@/lib/db/queries";
+import { formatCurrencyShort } from "@/lib/format";
 
-type C = MockCustomer;
-
-function formatRevenue(amount?: number) {
-  if (!amount) return "—";
-  if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
-  if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
-  return `₹${amount}`;
-}
+type C = CustomerRow;
 
 export function CustomerList({ customers }: { customers: C[] }) {
   const [tab, setTab] = useState<"all" | "b2c" | "b2b">("all");
@@ -48,7 +44,7 @@ export function CustomerList({ customers }: { customers: C[] }) {
   return (
     <>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "b2c" | "b2b")}>
           <TabsList>
             <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
             <TabsTrigger value="b2c">B2C ({stats.b2c})</TabsTrigger>
@@ -56,15 +52,18 @@ export function CustomerList({ customers }: { customers: C[] }) {
           </TabsList>
         </Tabs>
         <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search name, phone, email…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search name, phone, email…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 sm:w-64"
+              aria-label="Search customers"
+            />
+          </div>
           <div className="hidden text-right text-xs text-muted-foreground sm:block">
-            Total revenue: <span className="font-medium text-foreground">{formatRevenue(stats.revenue)}</span>
+            Total revenue: <span className="font-medium text-foreground">{formatCurrencyShort(stats.revenue)}</span>
           </div>
         </div>
       </div>
@@ -79,6 +78,7 @@ export function CustomerList({ customers }: { customers: C[] }) {
             <li key={customer.id}>
               <button
                 onClick={() => setSelected(customer)}
+                aria-label={`View ${customer.name} details`}
                 className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-secondary/60"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
@@ -114,14 +114,21 @@ export function CustomerList({ customers }: { customers: C[] }) {
                     <span className="flex items-center gap-1">
                       <Wrench className="h-3 w-3" />{customer.jobCount ?? 0} jobs
                     </span>
-                    <span className="flex items-center gap-1 font-medium text-foreground">
-                      <IndianRupee className="h-3 w-3" />{formatRevenue(customer.totalRevenue)}
+                    <span className="flex items-center gap-1 font-semibold text-foreground">
+                      <IndianRupee className="h-3 w-3" />{formatCurrencyShort(customer.totalRevenue ?? 0)}
                     </span>
                   </div>
                   {customer.lastJob && (
-                    <span className="max-w-[200px] truncate text-xs text-muted-foreground">
-                      Last: {customer.lastJob}
-                    </span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="max-w-[200px] truncate text-xs text-muted-foreground">
+                            Last: {customer.lastJob}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{customer.lastJob}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
               </button>

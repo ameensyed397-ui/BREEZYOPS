@@ -1,3 +1,6 @@
+---
+tags: [home, readme]
+---
 # Breezyops Vault — README
 
 This is an **Obsidian vault**. Open the folder in Obsidian (File → Open Vault → this folder) to get wikilinks, graph view and backlinks. It also reads fine as plain markdown in any editor or on GitHub.

@@ -19,9 +19,20 @@ export async function updateSession(request: NextRequest) {
       },
     }
   );
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Supabase unavailable — let request through to avoid locking users out
+  }
   const path = request.nextUrl.pathname;
-  const isPublic = path.startsWith("/login") || path.startsWith("/api/webhooks");
+  const isPublic =
+    path.startsWith("/login") ||
+    path.startsWith("/signup") ||
+    path.startsWith("/reset-password") ||
+    path.startsWith("/auth/confirm") ||
+    path.startsWith("/api/webhooks");
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

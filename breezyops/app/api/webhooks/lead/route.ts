@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, schema } from "@/lib/db";
+import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
 
-// Single intake endpoint for Breezy (voice/chat), AiSensy (WhatsApp), and web forms.
-// See vault: Integrations. One normalised payload -> one row in `leads`.
+export const dynamic = "force-dynamic";
+
 const LeadPayload = z.object({
   channel: z.enum(["voice", "whatsapp", "webchat", "webform", "referral", "walkin"]),
   source: z.string().optional(),
@@ -17,27 +18,61 @@ const LeadPayload = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  // Verify shared secret
-  if (req.headers.get("x-webhook-secret") !== process.env.LEAD_WEBHOOK_SECRET) {
+  const ip = req.headers.get("x-forwarded-for") ?? "anon";
+  if (!rateLimit(`webhook:${ip}`, 30, 60_000)) {
+    return NextResponse.json({ error: "rate limited" }, { status: 429 });
+  }
+
+  // Timing-safe secret comparison
+  const incoming = req.headers.get("x-webhook-secret") ?? "";
+  const expected = process.env.LEAD_WEBHOOK_SECRET ?? "";
+  if (!expected || incoming.length !== expected.length) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  const a = new TextEncoder().encode(incoming);
+  const b = new TextEncoder().encode(expected);
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  if (diff !== 0) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const parsed = LeadPayload.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid payload", detail: parsed.error.flatten() }, { status: 422 });
   }
   const p = parsed.data;
-  if (!db) return NextResponse.json({ error: "database not configured" }, { status: 503 });
 
-  // SLA: urgent 30m; callback-style webform 15m; else null
+  const sb = await createClient();
   const slaMinutes = p.urgent ? 30 : p.channel === "webform" ? 15 : null;
   const slaDueAt = slaMinutes ? new Date(Date.now() + slaMinutes * 60000) : null;
 
-  const [lead] = await db.insert(schema.leads).values({
-    channel: p.channel, source: p.source, segment: p.segment,
-    name: p.name, phone: p.phone, message: p.message,
-    urgent: p.urgent, aiDisclosed: p.ai_disclosed, slaDueAt,
-  }).returning({ id: schema.leads.id });
+  try {
+    // Resolve locality name to ID if provided
+    let localityId: string | null = null;
+    if (p.locality) {
+      const { data: loc } = await sb.from("localities").select("id").ilike("name", p.locality).single();
+      localityId = loc?.id ?? null;
+    }
 
-  // TODO: match `p.locality` -> localities.id; notify on-duty staff; realtime push.
-  return NextResponse.json({ ok: true, id: lead.id }, { status: 201 });
+    const { data: lead, error } = await sb.from("leads").insert({
+      channel: p.channel,
+      source: p.source,
+      segment: p.segment,
+      name: p.name,
+      phone: p.phone,
+      message: p.message,
+      urgent: p.urgent,
+      ai_disclosed: p.ai_disclosed,
+      sla_due_at: slaDueAt,
+      locality_id: localityId,
+    }).select("id").single();
+
+    if (error) {
+      return NextResponse.json({ error: "failed to create lead" }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, id: lead.id }, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "internal error" }, { status: 500 });
+  }
 }
