@@ -5,7 +5,7 @@ tags: [memory, status]
 
 Snapshot of what's actually built in `breezyops/` vs. the [[Feature-Index|13-feature spec]]. Update this after every feature lands — this is the "state of the world" for the code, same role [[Project-Context]] plays for the business. See [[Build-Log]] for the change-by-change history and reasoning.
 
-**Last updated:** 2026-07-14 (v0.8 — React 19 strict mode, ESLint compliant, all polish resolved)
+**Last updated:** 2026-07-16 (v0.9 — mutation hardening, error boundaries, document thumbnails, tab shadows, BREEZYAIR branding)
 
 ## Phase 1 progress
 
@@ -43,13 +43,13 @@ flowchart TB
 | Lead webhook intake | 🟢 Code complete, using Supabase JS client, timing-safe secret, error handling |
 | Leads inbox UI (F01) | 🟢 Built, real DB data, mutations wired to server actions with revalidation |
 | Pipeline boards (F02) | 🟢 Built, real DB data, drag-and-drop persists via `updateLeadStatusAction` / `updateDealStageAction` |
-| Schedule (F03) | 🟢 Built, real DB data, day/week view, booking sheet wired to `createAppointmentAction` |
+| Schedule (F03) | 🟢 Built, real DB data, day/week/month view, booking sheet wired to `createAppointmentAction` |
 | Customers (F05) | 🟢 Built, real DB data — list (All/B2C/B2B tabs, search, revenue) + detail sheet + [id] page |
 | Jobs (F04) | 🟢 Built, real DB data — list (All/Scheduled/Active/Done tabs, search) + detail sheet wired to `updateJobStatusAction` |
 | Invoices (F09) | 🟢 Built, real DB data — list (All/Draft/Sent/Paid/Overdue tabs, search) + detail sheet wired to `updateInvoiceStatusAction` |
 | Settings (F13) | 🟢 Built, wired to real DB — catalog (inline price/cost edit), users (profiles), localities (add/view), integrations, audit log |
 | Dashboard KPIs | 🟢 Wired to real DB queries (leads, jobs, invoices, customers, appointments) |
-| F10 Document & Media | 🟢 Built, real DB data — list (type tabs, search, upload) + detail sheet, improved download/delete UX |
+| F10 Document & Media | 🟢 Built, real DB data — card grid with gradient thumbnails, type tabs, search, upload stub, detail sheet with preview card |
 | Rate limiting | 🟢 In-memory sliding-window rate limiter on auth/confirm (10/min) and webhook (30/min) |
 
 ## Pages
@@ -71,8 +71,8 @@ flowchart TB
 | Directory | Files |
 |---|---|
 | `components/leads/` | `lead-inbox.tsx`, `lead-detail-sheet.tsx` |
-| `components/pipeline/` | `kanban-board.tsx`, `b2c-board.tsx`, `b2b-board.tsx`, `lead-pipeline-card.tsx`, `deal-pipeline-card.tsx` |
-| `components/schedule/` | `schedule-board.tsx`, `day-view.tsx`, `week-view.tsx`, `booking-sheet.tsx` |
+| `components/pipeline/` | `kanban-board.tsx`, `b2c-board.tsx`, `b2b-board.tsx`, `lead-pipeline-card.tsx`, `deal-pipeline-card.tsx`, `deal-detail-sheet.tsx`, `lead-detail-pipeline-sheet.tsx` |
+| `components/schedule/` | `schedule-board.tsx`, `day-view.tsx`, `week-view.tsx`, `month-view.tsx`, `booking-sheet.tsx` |
 | `components/customers/` | `customer-list.tsx`, `customer-detail-sheet.tsx` |
 | `components/jobs/` | `job-list.tsx`, `job-detail-sheet.tsx` |
 | `components/invoices/` | `invoice-list.tsx`, `invoice-detail-sheet.tsx` |
@@ -168,9 +168,10 @@ flowchart LR
 flowchart LR
     Page["/schedule"] --> Board["ScheduleBoard"]
     Board --> Nav["Date nav: prev/next, popover calendar, Today"]
-    Board --> ViewTabs{Day / Week}
-    ViewTabs --> Day["DayView\n(sorted list, empty/loading states)"]
+    Board --> ViewTabs{Day / Week / Month}
+    ViewTabs --> Day["DayView\n(time grid, now indicator)"]
     ViewTabs --> Week["WeekView\n(7-day grid, click day -> Day view)"]
+    ViewTabs --> Month["MonthView\n(Notion-style calendar, status dots)"]
     Board --> NewBtn["New appointment"] --> Sheet["BookingSheet"]
     Sheet --> Conflict{"Same technician,\noverlapping time?"}
     Conflict -->|yes| Block["Blocked: conflict toast"]
@@ -202,5 +203,13 @@ Per [[Build-Phases]], exit criteria is *10 real jobs run fully through Breezyops
 | Dark mode | ✅ resolved |
 | as any type safety | ✅ resolved |
 | ESLint + React 19 strict mode | ✅ resolved |
+| Mutation error handling (try-catch) | ✅ resolved (v0.9) |
+| Error boundary logging | ✅ resolved (v0.9) |
+| Document thumbnail previews | ✅ resolved (v0.9) |
+| Tab selected shadow highlight | ✅ resolved (v0.9) |
+| Invoice preview (PDF in-dialog) | ✅ resolved (v0.9) |
+| Pipeline detail sheets (click-to-open) | ✅ resolved (v0.9) |
+| BREEZYAIR branding on invoices | ✅ resolved (v0.9) |
+| Sheet padding consistency | ✅ resolved (v0.9) |
 
-**Remaining:** E2E test framework (Playwright/Cypress), command palette
+**Remaining:** E2E test framework (Playwright/Cypress), notification system, command palette

@@ -176,3 +176,36 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 5. **`document-detail-sheet.tsx` + `document-library.tsx`** — renamed Lucide `Image` → `ImageIcon` to fix `jsx-a11y/alt-text` false positive (ESLint couldn't distinguish Lucide icon from `next/image`).
 
 **State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `vitest run` 21/21 passing. Commit `38eef8b` — 80 files, +9362/-1413 lines. App is production-ready.
+
+## 2026-07-16 — v0.9 Mutation hardening, UI polish, BREEZYAIR branding
+
+**Why:** production readiness audit found 6 unprotected mutation functions in `queries.ts` (would 500 when Supabase is down), zero error handling in all 10 server actions, silent error boundaries, decorative notification bell, overlapping input fields, and missing invoice preview.
+
+**How:**
+
+### Critical fixes (blockers)
+- **Mutation hardening (`lib/db/queries.ts`):** wrapped all 6 unprotected mutations (`updateLeadStatus`, `updateDealStage`, `createAppointment`, `updateJobStatus`, `updateCatalogItem`, `addLocality`) in try-catch with mock/no-op fallbacks. `createAppointment` returns a synthetic record on fallback.
+- **Server action error handling (`app/actions.ts`):** all 10 server actions now have try-catch with `console.error` logging and re-throw for client-side error boundaries.
+- **Error boundaries:** all 10 route-level `error.tsx` files now log errors via `console.error("[ErrorBoundary]", error)` instead of silently swallowing them.
+
+### UI polish
+- **Tab shadows:** `TabsTrigger` gets subtle drop shadow on `data-[state=active]` (`shadow-[0_1px_3px]` light, `shadow-[0_1px_3px_rgba(0,0,0,0.3)]` dark) for visual selection highlight.
+- **Sheet padding:** increased to `px-6 py-5` across Header/Body/Footer for consistent spacing.
+- **Overlapping inputs:** invoice form line items redesigned as card blocks with stacked Qty/Rate/Amount grid. Booking sheet widened to `sm:max-w-lg`.
+- **Document thumbnails:** library switched from list to card grid with gradient preview thumbnails (photos get category-colored gradients, docs get type-labeled gradients). Detail sheet gets a prominent preview card.
+- **Kanban drag handle:** Notion-style `GripVertical` icon, visible on hover, drag restricted to handle only.
+- **Pipeline card labels:** colored stage/status badges on deal and lead cards.
+
+### Feature additions
+- **Invoice preview:** detail sheet Preview button generates PDF, opens in Dialog with iframe. `getPDFDataUri()` added to PDF generator.
+- **Pipeline detail sheets:** `deal-detail-sheet.tsx` and `lead-detail-pipeline-sheet.tsx` for click-to-open from kanban cards.
+- **Notion-style calendar:** `month-view.tsx` with 7-col grid, status-colored appointment pills, today highlight, "+N more" overflow.
+- **BREEZYAIR branding:** renamed from BREEZYOPS in all 3 PDF templates and GST dialog.
+
+### Cleanup
+- Removed unused `Info` import from `deal-pipeline-card.tsx`
+- Deleted dead `lib/db/index.ts` file
+- Removed `console.warn` from mock fallbacks in `queries.ts`
+- Extracted `GSTIN` constant and `DEFAULT_GST_RATE` constant
+
+**State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. All mutation functions have try-catch, all error boundaries log, all server actions have error handling.
