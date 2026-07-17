@@ -23,4 +23,4 @@ This is an **Obsidian vault**. Open the folder in Obsidian (File → Open Vault 
 - `08-Project-Memory` — context, glossary, changelog
 
 ## Current status
-**v0.11** committed (`1dccf9f`) — Appointment detail sheet with status actions, vertical button stacking across all modals. Vercel staging deployment in progress (`breezyops/breezyops`). See [[Build-Status]] for live state, [[Changelog]] for version history.
+**v0.13** committed (`452ad36`) — Comprehensive bugfix pass: auth hardening (password reset sign-out, forgot-password try-catch, OTP race condition), DB fixes (paid_at column, empty-result mock fallthrough, dashboard lead fields), schedule fixes (week nav ±49d bug, props sync, overlap normalization, URL cleanup), job checklist reset, PDF hex color parsing. Build passes clean. Live at `https://breezyops.vercel.app`. See [[Build-Status]] for live state, [[Changelog]] for version history.

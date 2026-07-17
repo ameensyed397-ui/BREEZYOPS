@@ -5,7 +5,7 @@ tags: [memory, status]
 
 Snapshot of what's actually built in `breezyops/` vs. the [[Feature-Index|13-feature spec]]. Update this after every feature lands — this is the "state of the world" for the code, same role [[Project-Context]] plays for the business. See [[Build-Log]] for the change-by-change history and reasoning.
 
-**Last updated:** 2026-07-16 (v0.11 — appointment detail sheet, vertical button stacking across all modals, appointment status actions. Vercel staging deployment in progress.)
+**Last updated:** 2026-07-17 (v0.13 — comprehensive bugfix pass: auth, DB, schedule, PDF, sheets. Build passes clean. Pushed to GitHub, Vercel auto-deploying.)
 
 ## Phase 1 progress
 
@@ -48,7 +48,7 @@ flowchart TB
 | Jobs (F04) | 🟢 Built, real DB data — list (All/Scheduled/Active/Done tabs, search) + detail sheet wired to `updateJobStatusAction` |
 | Invoices (F09) | 🟢 Built, real DB data — list (All/Draft/Sent/Paid/Overdue tabs, search) + detail sheet wired to `updateInvoiceStatusAction` |
 | Settings (F13) | 🟢 Built, wired to real DB — catalog (inline price/cost edit), users (profiles), localities (add/view), integrations, audit log |
-| Dashboard KPIs | 🟢 Wired to real DB queries (leads, jobs, invoices, customers, appointments) |
+| Dashboard KPIs | 🟢 Wired to real DB queries (leads, jobs, invoices, customers, appointments). Name/message/channel fields now read from DB (v0.13 fix). |
 | F10 Document & Media | 🟢 Built, real DB data — card grid with gradient thumbnails, type tabs, search, upload stub, detail sheet with preview card |
 | Rate limiting | 🟢 In-memory sliding-window rate limiter on auth/confirm (10/min) and webhook (30/min) |
 | Sidebar | 🟢 Shadcn sidebar component — collapsible icon mode, active nav highlighting (primary accent + left border), Caveat font brand, toggle in header, clickable logo to expand, avatar profile with initials |
@@ -73,7 +73,6 @@ flowchart TB
 |---|---|
 | `components/leads/` | `lead-inbox.tsx`, `lead-detail-sheet.tsx` |
 | `components/pipeline/` | `kanban-board.tsx`, `b2c-board.tsx`, `b2b-board.tsx`, `lead-pipeline-card.tsx`, `deal-pipeline-card.tsx`, `deal-detail-sheet.tsx`, `lead-detail-pipeline-sheet.tsx` |
-| `components/schedule/` | `schedule-board.tsx`, `day-view.tsx`, `week-view.tsx`, `month-view.tsx`, `booking-sheet.tsx` |
 | `components/layout/` | `header.tsx` |
 | `components/app-sidebar.tsx` | Shadcn sidebar with active highlighting, Caveat brand |
 | `components/hooks/` | `use-mobile.ts` |
@@ -112,7 +111,7 @@ All queries use Supabase JS client over HTTPS (direct PG connection blocked by I
 | `updateDealStage()` | `void` | |
 | `createAppointment()` | `new appointment` | With conflict check |
 | `updateJobStatus()` | `void` | |
-| `updateInvoiceStatus()` | `void` | |
+| `updateInvoiceStatus()` | `void` | No longer writes non-existent `paid_at` column (v0.13 fix) |
 | `fetchProfiles()` | `{ id, name, role, active }[]` | Settings users tab |
 | `fetchServiceCatalog()` | `{ id, name, segment, price, cost, active }[]` | Settings catalog tab |
 | `fetchActivityLog()` | `{ id, actor, action, entity, time }[]` | Settings audit tab, last 20 |
@@ -228,12 +227,26 @@ Per [[Build-Phases]], exit criteria is *10 real jobs run fully through Breezyops
 | Appointment detail view | ✅ resolved (v0.11) — click-to-open sheet with customer, technician, service, locality, time, notes, status actions |
 | Modal button stacking | ✅ resolved (v0.11) — all sheet/dialog footers use vertical layout with w-full buttons |
 
+| Password reset sign-out | ✅ resolved (v0.13) — explicit signOut before redirect prevents stale session |
+| Forgot password error handling | ✅ resolved (v0.13) — try-catch wraps resetPasswordForEmail |
+| OTP Enter key race condition | ✅ resolved (v0.13) — guard against double-submit when otpBusy |
+| DB empty-result mock fallthrough | ✅ resolved (v0.13) — empty arrays returned instead of mock data on success |
+| Dashboard lead field mapping | ✅ resolved (v0.13) — name/message/channel selected from DB, no more nulls |
+| Invoice status paid_at column | ✅ resolved (v0.13) — removed write to non-existent column |
+| Week view navigation (±49d bug) | ✅ resolved (v0.13) — was delta*7 double-multiply |
+| Day view overlap normalization | ✅ resolved (v0.13) — per-group columns via connected-component analysis |
+| Schedule props sync | ✅ resolved (v0.13) — useMemo-derived state replaces stale useState+useEffect |
+| Lead URL param cleanup | ✅ resolved (v0.13) — cleared after successful booking |
+| Job checklist persist | ✅ resolved (v0.13) — resets on sheet close |
+| PDF hex color parsing | ✅ resolved (v0.13) — hexToRgb helper for jsPDF color methods |
+
 **Remaining:** E2E test framework (Playwright/Cypress), notification system, command palette
 
 ## Deployment
 
 | Layer | State |
 |---|---|
-| GitHub repo | 🟢 Pushed — `ameensyed397-ui/BREEZYOPS` |
-| Vercel project | 🟡 Staging deployment in progress — `breezyops/breezyops` |
-| Production URL | ⏳ Pending staging verification |
+| GitHub repo | 🟢 Pushed — `ameensyed397-ui/BREEZYOPS` (commit `452ad36`) |
+| Vercel project | 🟢 Live — `breezyops/breezyops` |
+| Production URL | 🟢 `https://breezyops.vercel.app` — auto-deploying from main |
+| Env vars (Vercel) | 🟢 Set — `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `DATABASE_URL` |

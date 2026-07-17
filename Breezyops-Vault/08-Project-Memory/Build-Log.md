@@ -327,3 +327,43 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 - Environment variables (Supabase URL/key) to be configured in Vercel dashboard
 
 **State:** staging deployment in progress. First Vercel build pending.
+
+## 2026-07-17 — `452ad36` v0.13 Comprehensive bugfix pass — auth, DB, schedule, PDF, sheets
+
+**Why:** comprehensive functional audit identified ~60 issues across auth flow, database layer, schedule logic, PDF generation, and detail sheets. 12 critical/high items fixed, plus 4 medium items.
+
+### Auth fixes (critical)
+
+1. **Password reset sign-out (`app/reset-password/page.tsx`):** after `updateUser({ password })`, now explicitly calls `supabase.auth.signOut()` before redirecting to login. Previously, the recovery session lingered after password change, which could cause confusing behavior on next login.
+
+2. **Forgot password try-catch (`app/login/page.tsx`):** `handleForgotPassword` wrapped in try-catch. Previously, if `resetPasswordForEmail` threw (e.g. network failure, not just returned error), it was unhandled and would crash the component.
+
+3. **OTP Enter key race conditions (`app/login/page.tsx`):** both phone number input (`onKeyDown`) and OTP code input (`onKeyDown`) now check `!otpBusy` before calling `handleSendOtp()` / `handleVerifyOtp()`. Previously, pressing Enter while a request was in flight would fire duplicate requests.
+
+4. **exchangeCodeForSession redirect URL (`app/auth/confirm/route.ts`):** error redirect already used `request.url` base which is correct. `/reset-password` already in middleware allowlist and `safeRedirect` (confirmed fixed in v0.12).
+
+### DB fixes (critical)
+
+5. **`updateInvoiceStatus` paid_at (`lib/db/queries.ts:538`):** removed `update.paid_at = new Date().toISOString()` — the `invoices` table has no `paid_at` column, so this was writing a non-existent field that would cause a Supabase error on every invoice payment.
+
+6. **Empty-result mock fallthrough (`lib/db/queries.ts`):** all 8 fetch functions (`fetchLeads`, `fetchDeals`, `fetchAppointments`, `fetchJobs`, `fetchCustomers`, `fetchInvoices`, `fetchDocuments`, `fetchMedia`) now return `[]` when the DB returns 0 rows on success. Previously, `data.length === 0` fell through to mock data, making it impossible to tell if the DB was truly empty. Mock data now only returned on actual errors or fetch failures. Dashboard KPIs still fall to mock when ALL sub-queries return empty (intentional for demo).
+
+7. **Dashboard lead field mapping (`lib/db/queries.ts:404`):** `fetchDashboardKPIs` now selects `name, message, channel` from the leads table. Previously selected only `id, status, created_at, sla_due_at` and hardcoded `name: null`, `message: null`, `channel: "webform"` in the mapping — all recent leads showed as "Unknown" with no message on the dashboard.
+
+### Schedule fixes (medium)
+
+8. **Week view navigation bug (`components/schedule/schedule-board.tsx:61`):** `shiftDay` function had `nd.setDate(nd.getDate() + delta * 7)` for week view, but the button already passes `delta = -7` or `7`. Result: clicking prev/next moved ±49 days instead of ±7. Fixed to `nd.setDate(nd.getDate() + delta)`.
+
+9. **Props-to-state sync (`components/schedule/schedule-board.tsx`):** replaced `useState(appointments)` + `useEffect(() => setItems(appointments))` with `useMemo`-derived state pattern. The `useEffect` triggered React 19 strict ESLint violation (`react-hooks/set-state-in-effect`). New pattern: `optimisticAdds` state for newly created appointments + `statusOverrides` state for status changes, merged with server `appointments` prop via `useMemo`. Stays in sync with server data without effects.
+
+10. **Day view overlap normalization (`components/schedule/day-view.tsx:60`):** replaced global max-column normalization with per-group connected-component analysis. Previously, 3 overlapping appointments at 9am + 1 alone at 2pm all got `totalColumns = 3`, wasting 2/3 of the 2pm card width. Now uses DFS to find connected groups of overlapping appointments, then sets `totalColumns` per group independently.
+
+11. **Lead URL param cleanup (`components/schedule/booking-sheet.tsx`):** after successful appointment creation from lead data (URL params `?name=...&phone=...&locality=...&leadId=...`), now calls `window.history.replaceState` to clear the params from the URL. Previously, the booking URL params persisted indefinitely in the address bar.
+
+### Detail sheet / PDF fixes
+
+12. **Job checklist reset (`components/jobs/job-detail-sheet.tsx:71`):** `setChecklist({})` added to the `onOpenChange` reset handler. Previously, checking items in one job's checklist persisted when opening a different job's detail sheet.
+
+13. **PDF hex color parsing (`lib/invoice/pdf-generator.ts`):** added `hexToRgb()` helper that converts hex strings (e.g. `"#2563eb"`) to `[r, g, b]` tuples. All 9 jsPDF color calls (`setFillColor`, `setDrawColor`, `setTextColor`) and 2 `autoTable` config entries now use `hexToRgb(template.accent)` instead of passing the hex string directly. jsPDF color methods expect numeric values — hex strings were silently producing incorrect colors (grayscale NaN fallback).
+
+**State:** `next build` clean (16 routes, zero errors), ESLint strict rules satisfied (React 19 compliance maintained). Committed as `452ad36`, force-pushed to origin/main. Vercel auto-deploying.
