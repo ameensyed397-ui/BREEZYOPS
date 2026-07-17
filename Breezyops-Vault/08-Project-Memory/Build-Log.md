@@ -315,3 +315,15 @@ While testing F02, attempted to temporarily set the auth middleware to always-pu
 - `b2b-board.tsx`: GST dialog Go back/Mark won buttons → `w-full`, DialogFooter → `flex flex-col`
 
 **State:** `tsc --noEmit` clean, `next build` clean (16 routes, zero errors), `pnpm lint` clean (zero warnings), `vitest run` 21/21 passing. Committed as `1dccf9f`.
+
+## 2026-07-16 — Vercel staging deployment setup
+
+**Why:** app is production-ready (v0.11) and needs a live staging environment for verification before production launch.
+
+**How:**
+- GitHub repo pushed: `ameensyed397-ui/BREEZYOPS` — full codebase + vault
+- Vercel project created: `breezyops/breezyops`
+- Deployment in progress — awaiting first build + DNS configuration
+- Environment variables (Supabase URL/key) to be configured in Vercel dashboard
+
+**State:** staging deployment in progress. First Vercel build pending.

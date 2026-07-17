@@ -23,4 +23,4 @@ This is an **Obsidian vault**. Open the folder in Obsidian (File → Open Vault 
 - `08-Project-Memory` — context, glossary, changelog
 
 ## Current status
-**v0.11** committed (`1dccf9f`) — Appointment detail sheet with status actions, vertical button stacking across all modals. See [[Build-Status]] for live state, [[Changelog]] for version history.
+**v0.11** committed (`1dccf9f`) — Appointment detail sheet with status actions, vertical button stacking across all modals. Vercel staging deployment in progress (`breezyops/breezyops`). See [[Build-Status]] for live state, [[Changelog]] for version history.
