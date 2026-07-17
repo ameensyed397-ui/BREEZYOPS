@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 
-const ALLOWED_REDIRECTS = ["/", "/leads", "/pipeline", "/schedule", "/jobs", "/customers", "/invoices", "/documents", "/settings"];
+const ALLOWED_REDIRECTS = ["/", "/leads", "/pipeline", "/schedule", "/jobs", "/customers", "/invoices", "/documents", "/settings", "/reset-password", "/login", "/signup"];
 
 function safeRedirect(base: string, next: string | null): URL {
   const target = next ?? "/reset-password";
